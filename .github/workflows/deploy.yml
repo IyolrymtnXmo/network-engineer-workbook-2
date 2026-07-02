@@ -1,0 +1,137 @@
+# ============================================================
+# CI/CD — Deploy the workbook to GitHub Pages
+#
+# Trigger: ทุกครั้งที่ push ขึ้น branch main (หรือกดรันเองจากแท็บ Actions)
+# ขั้นตอน: validate HTML → upload site artifact → deploy to GitHub Pages
+#
+# สิ่งที่ต้องตั้งค่าครั้งแรก (ครั้งเดียว):
+#   Repo → Settings → Pages → Build and deployment → Source: "GitHub Actions"
+# ============================================================
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required files exist
+        run: |
+          set -e
+          for f in index.html fundamentals.html commands.html assets/css/style.css assets/js/main.js; do
+            test -f "$f" || { echo "::error::missing $f"; exit 1; }
+          done
+          for i in 01 02 03 04 05 06 07 08 09 10; do
+            test -f "labs/lab$i.html" || { echo "::error::missing labs/lab$i.html"; exit 1; }
+          done
+          echo "All required files present."
+
+      - name: Validate HTML structure
+        run: |
+          python3 - <<'EOF'
+          import glob, sys
+          from html.parser import HTMLParser
+
+          VOID = {"area","base","br","col","embed","hr","img","input",
+                  "link","meta","param","source","track","wbr"}
+
+          class Checker(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.stack, self.errors = [], []
+              def handle_starttag(self, tag, attrs):
+                  if tag not in VOID:
+                      self.stack.append((tag, self.getpos()))
+              def handle_endtag(self, tag):
+                  if tag in VOID:
+                      return
+                  if self.stack and self.stack[-1][0] == tag:
+                      self.stack.pop()
+                  else:
+                      opens = [t for t, _ in self.stack]
+                      if tag in opens:
+                          while self.stack and self.stack[-1][0] != tag:
+                              t, pos = self.stack.pop()
+                              self.errors.append(f"unclosed <{t}> opened at line {pos[0]}")
+                          self.stack.pop()
+                      else:
+                          self.errors.append(f"stray </{tag}> at line {self.getpos()[0]}")
+
+          failed = False
+          for path in sorted(glob.glob("*.html") + glob.glob("labs/*.html")):
+              c = Checker()
+              with open(path, encoding="utf-8") as f:
+                  c.feed(f.read())
+              c.close()
+              for t, pos in c.stack:
+                  c.errors.append(f"unclosed <{t}> opened at line {pos[0]}")
+              if c.errors:
+                  failed = True
+                  for e in c.errors:
+                      print(f"::error file={path}::{e}")
+              else:
+                  print(f"OK  {path}")
+          sys.exit(1 if failed else 0)
+          EOF
+
+      - name: Check internal links
+        run: |
+          python3 - <<'EOF'
+          import glob, os, re, sys
+          from urllib.parse import urlparse
+
+          failed = False
+          for path in sorted(glob.glob("*.html") + glob.glob("labs/*.html")):
+              base = os.path.dirname(path)
+              with open(path, encoding="utf-8") as f:
+                  html = f.read()
+              for attr, target in re.findall(r'(href|src)="([^"]+)"', html):
+                  u = urlparse(target)
+                  if u.scheme or target.startswith(("#", "data:", "mailto:")):
+                      continue
+                  local = os.path.normpath(os.path.join(base, u.path))
+                  if not os.path.exists(local):
+                      failed = True
+                      print(f"::error file={path}::broken {attr}: {target}")
+          print("Link check finished.")
+          sys.exit(1 if failed else 0)
+          EOF
+
+  deploy:
+    name: Deploy
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

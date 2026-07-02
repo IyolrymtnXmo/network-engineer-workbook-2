@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab 2 — Static + Default Route และ Longest Prefix Match | Network Engineer Workbook</title>
+  <meta name="description" content="ฝึกออกแบบ Static Route และ Default Route ข้ามเครือข่าย 3 router (Branch–HQ–ISP) พร้อมฝึกอ่าน routing table ด้วยหลัก Longest Prefix Match และไล่ปัญหา return route แบบงานจริง">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body data-page="lab02">
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-badge">NW</span>
+      <span>Network Engineer Workbook</span>
+    </a>
+    <nav>
+      <a href="../index.html">หน้าแรก</a>
+      <a href="../fundamentals.html">ทฤษฎีพื้นฐาน</a>
+      <a href="../commands.html">Command Reference</a>
+      <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="btn toc-mobile-toggle" type="button">☰ สารบัญของ Lab นี้</button>
+      <nav class="toc">
+        <div class="toc-title">เนื้อหาใน Lab นี้</div>
+        <a href="#objectives"><span class="toc-num">1</span> Learning Objectives</a>
+        <a href="#topology"><span class="toc-num">2</span> Network Topology</a>
+        <a href="#addressing"><span class="toc-num">3</span> Addressing Table</a>
+        <a href="#scenario"><span class="toc-num">4</span> Lab Guide</a>
+        <a href="#tasks"><span class="toc-num">5</span> Configuration Tasks</a>
+        <a href="#verification"><span class="toc-num">6</span> Verification</a>
+        <a href="#troubleshooting"><span class="toc-num">7</span> Troubleshooting</a>
+        <a href="#packetflow"><span class="toc-num">8</span> Packet Flow</a>
+        <a href="#reviewer"><span class="toc-num">9</span> Reviewer Questions</a>
+        <a href="#traps"><span class="toc-num">10</span> Hidden Traps</a>
+        <a href="#answerkey"><span class="toc-num">11</span> Answer Key</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+
+      <header class="lab-header">
+        <div class="lab-kicker">Lab 2 / 10</div>
+        <h1>Static + Default Route และ Longest Prefix Match</h1>
+        <p class="lab-sub">Lab นี้พาคุณออกแบบเส้นทางแบบ static ข้ามเครือข่าย 3 router (สาขา – สำนักงานใหญ่ – ISP) ฝึกอ่าน routing table ด้วยหลัก Longest Prefix Match และเจอปัญหาคลาสสิกของงานจริง: "ขาไปถึง แต่ขากลับไม่มี" ซึ่งเป็นสาเหตุอันดับต้น ๆ ของเคส ping ไม่ได้ที่ SI ทุกบริษัทต้องเจอ</p>
+        <div class="badges">
+          <span class="badge level-basic">ระดับ: พื้นฐาน–กลาง</span>
+          <span class="badge time">⏱ ใช้เวลาประมาณ 75 นาที</span>
+          <span class="badge topic">Default Route</span>
+          <span class="badge topic">Longest Prefix Match</span>
+          <span class="badge topic">Routing Table</span>
+        </div>
+      </header>
+
+      <!-- ===== 1. Learning Objectives ===== -->
+      <section id="objectives" class="section-card">
+        <h2><span class="section-num">1</span> Learning Objectives</h2>
+        <p class="section-intro">หลังจบ Lab นี้ ผู้เรียนต้อง "ทำได้" ตามรายการต่อไปนี้ ไม่ใช่แค่ "เคยอ่านผ่าน" — reviewer จะทดสอบด้วยการให้อธิบาย routing table จริงทีละบรรทัด</p>
+        <ul>
+          <li>ตั้งค่า static route แบบเจาะจง (specific route) และ default route (<code>ip route 0.0.0.0 0.0.0.0 ...</code>) บน Cisco IOS ได้ถูกต้องตาม design</li>
+          <li>อธิบายได้ว่าเมื่อ packet หนึ่งใบมาถึง router เลือกเส้นทางอย่างไรด้วยหลัก <strong>Longest Prefix Match (LPM)</strong> พร้อมยกตัวอย่างจาก routing table จริง</li>
+          <li>แยกความหมายของค่า <strong>Administrative Distance (AD)</strong> กับ <strong>metric</strong> และบอกได้ว่าแต่ละค่าใช้ตัดสินตอนไหน</li>
+          <li>อ่าน output ของ <code>show ip route</code> ได้ครบ: code (C / L / S / S*), ค่า [AD/metric], next-hop, gateway of last resort</li>
+          <li>ออกแบบ routing ให้ stub network (สาขาเล็กที่มีทางออกทางเดียว) ด้วย default route เส้นเดียว และอธิบายได้ว่าทำไมไม่ควรใส่ route ละเอียดโดยไม่จำเป็น</li>
+          <li>วิเคราะห์ปัญหา "ping จาก router ได้ แต่ ping จากเครื่องลูกข่ายไม่ได้" และชี้ได้ว่าเกิดจาก return route ที่ปลายทางไม่มี</li>
+          <li>ตรวจจับ configuration ที่ผิดจากเอกสารที่ได้รับมา (addressing table / initial config) ก่อนนำไปใช้งานจริง</li>
+        </ul>
+        <div class="callout info">
+          <span class="co-icon">💼</span>
+          <div class="co-body">
+            <span class="co-title">มุมมองจากงานจริง</span>
+            งานส่งมอบของ SI จำนวนมากคือ "ต่อสาขาลูกค้าเข้ากับ HQ และออก Internet" โครงแบบใน Lab นี้คือโครงแบบที่เจอบ่อยที่สุดโครงหนึ่ง สิ่งที่ reviewer ภายในคาดหวังจาก engineer ระดับเริ่มต้นคือ (1) อ่าน routing table แล้วตอบได้ทันทีว่า packet ปลายทางใด ๆ จะออก interface ไหน และ (2) เวลาลูกค้าแจ้งว่า "ping ไม่ได้" ต้องคิดถึง<strong>ขากลับ</strong>เสมอ ไม่ใช่ไล่แต่ขาไป
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 2. Network Topology ===== -->
+      <section id="topology" class="section-card">
+        <h2><span class="section-num">2</span> Network Topology</h2>
+        <div class="topology-box">
+<pre>
+     Branch Site                            HQ Site                          ISP (Simulated Internet)
+     LAN: 192.168.10.0/24                   LAN: 192.168.20.0/24             Lo0: 8.8.8.8/32
+
+    +----------+
+    |   PC1    |
+    | .10 /24  |
+    +----+-----+
+         |
+         | G0/0 = 192.168.10.1
+         |          WAN1 = 10.0.12.0/30                   WAN2 = 10.0.23.0/30
+    +----------+                          +----------+                          +----------+
+    |    R1    | G0/1                G0/1 |    R2    | G0/2                G0/1 |    R3    |
+    | (Branch) +--------------------------+   (HQ)   +--------------------------+  (ISP)   |
+    +----------+ 10.0.12.1      10.0.12.2 +----+-----+ 10.0.23.1      10.0.23.2 +----+-----+
+                                               |                                     |
+                                          G0/0 | 192.168.20.1                 Loopback0 =
+                                               |                              8.8.8.8/32
+                                          +----+-----+
+                                          |   PC2    |
+                                          | .10 /24  |
+                                          +----------+
+</pre>
+        </div>
+        <h3>คำอธิบายการเชื่อมต่อ</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>จากอุปกรณ์</th><th>Interface</th><th>ไปยังอุปกรณ์</th><th>Interface</th><th>หมายเหตุ (VLAN / Subnet)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>PC1</td><td class="mono">NIC</td><td>R1</td><td class="mono">G0/0</td><td>Branch LAN — 192.168.10.0/24</td></tr>
+              <tr><td>R1</td><td class="mono">G0/1</td><td>R2</td><td class="mono">G0/1</td><td>WAN1 — 10.0.12.0/30 (point-to-point)</td></tr>
+              <tr><td>PC2</td><td class="mono">NIC</td><td>R2</td><td class="mono">G0/0</td><td>HQ LAN — 192.168.20.0/24</td></tr>
+              <tr><td>R2</td><td class="mono">G0/2</td><td>R3</td><td class="mono">G0/1</td><td>WAN2 — 10.0.23.0/30 (point-to-point)</td></tr>
+              <tr><td>R3</td><td class="mono">Loopback0</td><td>—</td><td class="mono">—</td><td>8.8.8.8/32 จำลองปลายทางบน Internet</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>ภาพรวม: R1 คือ router สาขา (Branch) มีทางออกทางเดียวผ่านลิงก์ WAN1 ไปหา R2 ที่สำนักงานใหญ่ (HQ) — เครือข่ายลักษณะนี้เรียกว่า <strong>stub network</strong> ส่วน R2 เป็นจุดรวมทราฟฟิกของทั้งองค์กร ก่อนออกสู่ ISP (R3) ผ่านลิงก์ WAN2 ทั้งสองลิงก์ WAN ใช้ subnet /30 ตามธรรมเนียม point-to-point link (มี host address ใช้ได้พอดี 2 ตัว) ฝั่ง R3 มี Loopback0 = 8.8.8.8/32 ไว้จำลอง "ปลายทางบน Internet" สำหรับทดสอบ ping</p>
+      </section>
+
+      <!-- ===== 3. Addressing Table ===== -->
+      <section id="addressing" class="section-card">
+        <h2><span class="section-num">3</span> Addressing Table</h2>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>R1</td><td class="mono">GigabitEthernet0/0</td><td class="mono">192.168.10.1</td><td class="mono">255.255.255.0</td><td class="mono">—</td></tr>
+              <tr><td>R1</td><td class="mono">GigabitEthernet0/1</td><td class="mono">10.0.12.1</td><td class="mono">255.255.255.252</td><td class="mono">—</td></tr>
+              <tr><td>R2</td><td class="mono">GigabitEthernet0/0</td><td class="mono">192.168.20.1</td><td class="mono">255.255.255.0</td><td class="mono">—</td></tr>
+              <tr><td>R2</td><td class="mono">GigabitEthernet0/1</td><td class="mono">10.0.12.2</td><td class="mono">255.255.255.252</td><td class="mono">—</td></tr>
+              <tr><td>R2</td><td class="mono">GigabitEthernet0/2</td><td class="mono">10.0.23.1</td><td class="mono">255.255.255.252</td><td class="mono">—</td></tr>
+              <tr><td>R3</td><td class="mono">GigabitEthernet0/1</td><td class="mono">10.0.23.2</td><td class="mono">255.255.255.0</td><td class="mono">—</td></tr>
+              <tr><td>R3</td><td class="mono">Loopback0</td><td class="mono">8.8.8.8</td><td class="mono">255.255.255.255</td><td class="mono">—</td></tr>
+              <tr><td>PC1</td><td class="mono">NIC</td><td class="mono">192.168.10.10</td><td class="mono">255.255.255.0</td><td class="mono">192.168.10.1</td></tr>
+              <tr><td>PC2</td><td class="mono">NIC</td><td class="mono">192.168.20.10</td><td class="mono">255.255.255.0</td><td class="mono">192.168.20.1</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== 4. Lab Guide (สถานการณ์) ===== -->
+      <section id="scenario" class="section-card">
+        <h2><span class="section-num">4</span> Lab Guide — สถานการณ์</h2>
+        <p>ลูกค้าของบริษัทคุณเป็นธุรกิจซื้อ-ขายวัสดุก่อสร้าง มีสำนักงานใหญ่ (HQ) หนึ่งแห่งและสาขา (Branch) หนึ่งแห่ง เชื่อมกันด้วยลิงก์ WAN แบบ point-to-point ที่เช่าจากผู้ให้บริการ ทาง HQ ต่อออก Internet ผ่าน router ของ ISP (ใน Lab นี้คือ R3 ซึ่งมี Loopback0 = 8.8.8.8/32 จำลองปลายทางบน Internet) ทีม engineer ชุดก่อนได้ตั้งค่า R1 ที่สาขาไว้บางส่วนแล้วก่อนส่งมอบงานต่อให้คุณ</p>
+        <h3>Design Intent (แบบที่ได้รับอนุมัติแล้ว)</h3>
+        <ul>
+          <li><strong>R1 (Branch)</strong> — เป็น stub network มีทางออกทางเดียว จึงกำหนดให้ใช้ <strong>default route เส้นเดียว</strong> ชี้ next-hop ไปที่ 10.0.12.2 ห้ามใส่ route เจาะจงรายเครือข่าย เพื่อให้ config สาขาเรียบง่ายและไม่ต้องตามแก้ทุกครั้งที่ HQ เพิ่ม subnet ใหม่</li>
+          <li><strong>R2 (HQ)</strong> — ต้องรู้จัก Branch LAN แบบเจาะจง: static route <code>192.168.10.0/24</code> ชี้ไป 10.0.12.1 และมี default route ชี้ออก ISP ที่ 10.0.23.2 สำหรับปลายทางอื่นทั้งหมด</li>
+          <li><strong>R3 (ISP)</strong> — อยู่นอกขอบเขตการดูแลของเรา ทีม ISP จะเพิ่ม static route ให้<strong>เฉพาะรายการที่ลูกค้าร้องขอเป็นลายลักษณ์อักษร</strong>เท่านั้น ใบร้องขอ (route request form) ฉบับปัจจุบันที่ทีมก่อนหน้าส่งไว้มีรายการเดียว: เครือข่าย 10.0.12.0/30 ชี้ next-hop 10.0.23.1</li>
+        </ul>
+        <p>เกณฑ์ตรวจรับของลูกค้า (acceptance test): <strong>PC1 ↔ PC2 ต้อง ping ถึงกัน และทั้ง PC1 กับ PC2 ต้อง ping 8.8.8.8 ได้</strong></p>
+        <div class="cli">
+          <div class="cli-title">Initial Configuration — R1 (ให้มาแล้ว ห้ามลบ ให้ตรวจสอบและแก้ไขได้)</div>
+<pre>hostname R1
+!
+interface GigabitEthernet0/0
+ description LAN Branch 192.168.10.0/24
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description WAN1 to R2-HQ
+ ip address 10.0.12.1 255.255.255.252
+ no shutdown
+!
+ip route 0.0.0.0 255.255.255.255 10.0.12.2
+!
+end</pre>
+        </div>
+        <div class="callout warn">
+          <span class="co-icon">📋</span>
+          <div class="co-body">
+            <span class="co-title">ธรรมเนียมงานจริง</span>
+            เอกสารที่ส่งต่อกันมาระหว่างทีม (addressing table, initial config, ใบร้องขอ route) <strong>ไม่ได้ถูกต้องเสมอไป</strong> engineer ที่ดีจะตรวจทานเอกสารเทียบกับ design intent ก่อนพิมพ์คำสั่งลงอุปกรณ์จริงทุกครั้ง — ใน Lab นี้ก็เช่นกัน
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 5. Configuration Tasks ===== -->
+      <section id="tasks" class="section-card">
+        <h2><span class="section-num">5</span> Configuration Tasks</h2>
+        <p class="section-intro">ทำตามโจทย์ทีละข้อ <strong>ยังไม่ต้องเปิดเฉลย</strong> — ติ๊กถูกเมื่อทำเสร็จ ระบบจะจำไว้ให้</p>
+        <ol class="task-list">
+          <li>
+            <input class="task-check" type="checkbox" data-task="t1" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">สร้าง topology และนำ Initial Configuration ไปใช้กับ R1</span>
+            <p>สร้างอุปกรณ์ตามผัง Section 2 (router 3 ตัว + PC 2 เครื่อง) เชื่อมสายตามตารางการเชื่อมต่อ จากนั้นนำ Initial Configuration ของ R1 ใน Section 4 ไปใช้ทั้งชุด — ถือว่า config ชุดนี้คือสภาพที่ทีมก่อนหน้าส่งมอบไว้</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t2" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ตั้งค่าพื้นฐานและ IP address บน R2</span>
+            <p>ตั้ง hostname เป็น <code>R2</code> แล้วกำหนด IP address ให้ G0/0, G0/1, G0/2 ตาม Addressing Table พร้อมใส่ description ทุก interface และเปิดใช้งานให้สถานะเป็น up/up</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t3" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ตั้งค่าพื้นฐานและ IP address บน R3</span>
+            <p>ตั้ง hostname เป็น <code>R3</code> กำหนด IP address ให้ G0/1 และสร้าง <code>Loopback0</code> เป็น 8.8.8.8/32 เพื่อจำลองปลายทางบน Internet ตรวจสอบข้อมูลที่ใช้กับเอกสารประกอบให้รอบคอบก่อนพิมพ์</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t4" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ตั้งค่า IP ให้ PC1 / PC2 และทดสอบภายใน LAN</span>
+            <p>กำหนด IP address, subnet mask และ default gateway ให้ PC ทั้งสองเครื่องตาม Addressing Table แล้วทดสอบ: PC1 ต้อง ping 192.168.10.1 ได้ และ PC2 ต้อง ping 192.168.20.1 ได้ ก่อนไปข้อถัดไป</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t5" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ทำให้ routing ของ R1 เป็นไปตาม design intent</span>
+            <p>ตาม design R1 ต้องมี default route เส้นเดียวชี้ next-hop 10.0.12.2 และห้ามมี static route อื่น ทดสอบว่า routing table ของ R1 มี gateway of last resort ถูกต้อง และ R1 ping 10.0.12.2 ได้</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t6" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ตั้งค่า static + default route บน R2</span>
+            <p>เพิ่ม route เจาะจงไปยัง Branch LAN <code>192.168.10.0/24</code> ชี้ next-hop 10.0.12.1 และ default route ชี้ next-hop 10.0.23.2 จากนั้นทดสอบ: PC1 ↔ PC2 ต้อง ping ถึงกันได้แล้วในขั้นนี้</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t7" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ตั้งค่า route บน R3 ตามใบร้องขอของลูกค้า</span>
+            <p>สวมบทบาทเป็นทีม ISP: เพิ่ม static route ไปยังเครือข่าย <code>10.0.12.0/30</code> ชี้ next-hop 10.0.23.1 ตามใบร้องขอฉบับปัจจุบัน</p>
+          </li>
+          <li>
+            <input class="task-check" type="checkbox" data-task="t8" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ทดสอบตามเกณฑ์ตรวจรับ และวิเคราะห์ผล</span>
+            <p>ทดสอบครบ 4 รายการ: (ก) PC1 ping PC2, (ข) PC1 ping 8.8.8.8, (ค) PC2 ping 8.8.8.8, (ง) R1 ping 8.8.8.8 — จดผลแต่ละรายการ ถ้ารายการใดไม่ผ่าน ให้ไล่ routing table ของ router ทุกตัวบนเส้นทาง<strong>ทั้งขาไปและขากลับ</strong> หาสาเหตุและแก้ให้ผ่านเกณฑ์ตรวจรับให้ได้ด้วยตัวเองก่อนเปิดเฉลย</p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ===== 6. Verification ===== -->
+      <section id="verification" class="section-card">
+        <h2><span class="section-num">6</span> Verification</h2>
+        <p class="section-intro">ตรวจสอบอย่างเป็นระบบ ไม่ใช่แค่ ping แล้วจบ — engineer ต้องพิสูจน์ได้ว่า "ทำไมมันใช้ได้" ด้วยหลักฐานจากคำสั่ง show เสมอ</p>
+        <div class="verify-grid">
+          <div class="verify-card">
+            <div class="vc-cmd">show ip route</div>
+            <p>ดู routing table ทั้งหมดของ router — คำสั่งที่สำคัญที่สุดของ Lab นี้</p>
+            <ul>
+              <li>code <code>C</code> = connected, <code>L</code> = local (/32 ของ interface ตัวเอง), <code>S</code> = static, <code>S*</code> = static ที่เป็น candidate default</li>
+              <li>ค่าในวงเล็บ [1/0] คือ [AD/metric] — static route ต้องเป็น AD 1, metric 0</li>
+              <li>บรรทัด <code>Gateway of last resort is ...</code> ต้องชี้ next-hop ที่ถูกต้อง ถ้าขึ้น "is not set" แปลว่ายังไม่มี default route ที่ใช้งานได้</li>
+            </ul>
+          </div>
+          <div class="verify-card">
+            <div class="vc-cmd">show ip route 8.8.8.8</div>
+            <p>ถาม router ตรง ๆ ว่า "ปลายทางนี้ ใช้ route ไหน" — ใช้ตรวจผลของ Longest Prefix Match กับปลายทางเจาะจง</p>
+            <ul>
+              <li>ถ้ามี route เจาะจง match จะแสดง "Routing entry for ..." พร้อม next-hop, AD และ metric</li>
+              <li>ข้อควรรู้: ถ้าปลายทาง match ได้แค่ default route คำสั่งนี้จะตอบ <code>% Network not in table</code> ทั้งที่ packet ยังถูก forward ผ่าน S* ได้ตามปกติ — อย่าสรุปผิดว่า "route หาย"</li>
+            </ul>
+          </div>
+          <div class="verify-card">
+            <div class="vc-cmd">show ip interface brief</div>
+            <p>ตรวจสถานะ interface และ IP address ทุกขาในหน้าจอเดียว</p>
+            <ul>
+              <li>ทุก interface ที่ใช้งานต้องเป็น <code>up / up</code> — ถ้า Status = administratively down แปลว่าลืม <code>no shutdown</code></li>
+              <li>เทียบ IP address ที่ขึ้นจริงกับ design ทีละบรรทัด อย่าเชื่อเอกสารอย่างเดียว</li>
+            </ul>
+          </div>
+          <div class="verify-card">
+            <div class="vc-cmd">ping 8.8.8.8 source GigabitEthernet0/0</div>
+            <p>ping จาก router โดยบังคับ source เป็นขา LAN — ใช้จำลองมุมมองของเครื่องลูกข่ายโดยไม่ต้องเดินไปที่ PC</p>
+            <ul>
+              <li>ping ปกติจาก router จะใช้ source เป็น IP ของ interface ขาออก (ขา WAN) ซึ่งปลายทางมักรู้จัก — ผลทดสอบจึง "สวยเกินจริง"</li>
+              <li>ถ้า ping ธรรมดาผ่านแต่ใส่ <code>source</code> ขา LAN แล้วไม่ผ่าน ให้สงสัยทันทีว่าปลายทาง<strong>ไม่มี return route</strong> กลับมาหา subnet ของ LAN</li>
+            </ul>
+          </div>
+          <div class="verify-card">
+            <div class="vc-cmd">traceroute 8.8.8.8</div>
+            <p>ไล่เส้นทางทีละ hop เพื่อดูว่า packet ตายที่ตรงไหน</p>
+            <ul>
+              <li>hop สุดท้ายที่ตอบกลับมา คือ router ตัวสุดท้ายที่ยังส่งต่อ/ตอบได้ — จุดที่ต้องไปตรวจคือ hop ถัดไปจากนั้น</li>
+              <li>บน PC (Windows) ใช้ <code>tracert 8.8.8.8</code> ให้ผลแบบเดียวกัน</li>
+            </ul>
+          </div>
+          <div class="verify-card">
+            <div class="vc-cmd">show running-config | include ip route</div>
+            <p>ดูว่าเราพิมพ์ static route อะไรลงไปแล้วบ้าง (มุมมอง config)</p>
+            <ul>
+              <li>เทียบกับ <code>show ip route</code> เสมอ — บรรทัดที่อยู่ใน running-config อาจ<strong>ไม่ถูก install ลง routing table</strong> ถ้า next-hop resolve ไม่ได้</li>
+              <li>เวลาแก้ static route ต้อง <code>no ip route ...</code> บรรทัดเดิมออกก่อน ไม่อย่างนั้นจะมี route เก่าค้างซ้อนกัน</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>แบบฝึกอ่าน Routing Table ด้วย Longest Prefix Match</h3>
+        <p>เมื่อ config ครบและระบบผ่านเกณฑ์ตรวจรับแล้ว routing table ของ R2 จะเป็นดังนี้:</p>
+        <div class="cli">
+          <div class="cli-title">R2# show ip route</div>
+<pre>Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       i - IS-IS, su - IS-IS summary, * - candidate default
+       (ตัด legend บางส่วนเพื่อความกระชับ)
+
+Gateway of last resort is 10.0.23.2 to network 0.0.0.0
+
+S*    0.0.0.0/0 [1/0] via 10.0.23.2
+      10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+C        10.0.12.0/30 is directly connected, GigabitEthernet0/1
+L        10.0.12.2/32 is directly connected, GigabitEthernet0/1
+C        10.0.23.0/30 is directly connected, GigabitEthernet0/2
+L        10.0.23.1/32 is directly connected, GigabitEthernet0/2
+S     192.168.10.0/24 [1/0] via 10.0.12.1
+      192.168.20.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.20.0/24 is directly connected, GigabitEthernet0/0
+L        192.168.20.1/32 is directly connected, GigabitEthernet0/0</pre>
+        </div>
+        <p><strong>คำถาม:</strong> ถ้า packet ต่อไปนี้มาถึง R2 แต่ละใบจะ match route บรรทัดไหน เพราะอะไร (ตอบพร้อมเหตุผลลงสมุด แล้วค่อยเทียบกับ Answer Key)</p>
+        <ol>
+          <li>packet ปลายทาง <code>192.168.10.55</code></li>
+          <li>packet ปลายทาง <code>8.8.8.8</code></li>
+          <li>packet ปลายทาง <code>10.0.12.2</code></li>
+        </ol>
+        <div class="callout tip">
+          <span class="co-icon">🧭</span>
+          <div class="co-body">
+            <span class="co-title">กติกาการเลือกเส้นทาง — ลำดับที่ต้องท่องให้ขึ้นใจ</span>
+            <p style="margin:0 0 6px;">1) <strong>Longest Prefix Match ชนะเสมอ</strong> — เปรียบเทียบ "ความยาว prefix" ของทุก route ที่ match ปลายทาง route ที่ prefix ยาวที่สุด (เจาะจงที่สุด) ถูกใช้ก่อนโดยไม่สน AD หรือ metric ใด ๆ</p>
+            <p style="margin:0 0 6px;">2) <strong>AD ใช้เมื่อ prefix เท่ากันแต่มาจากคนละ source</strong> — เช่น 10.1.1.0/24 มีทั้งจาก static (AD 1) และ OSPF (AD 110) router จะ install ตัวที่ AD ต่ำกว่าลง routing table</p>
+            <p style="margin:0;">3) <strong>metric ใช้เปรียบเทียบภายใน protocol เดียวกัน</strong> — เช่น OSPF มี 2 เส้นทางไป prefix เดียวกัน จะเลือกเส้นที่ cost ต่ำกว่า</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 7. Troubleshooting ===== -->
+      <section id="troubleshooting" class="section-card">
+        <h2><span class="section-num">7</span> Troubleshooting Scenarios</h2>
+        <p class="section-intro">สถานการณ์เหล่านี้เจอจริงหน้างานทั้งหมด ฝึก "วิธีคิด" ให้จบก่อน แล้วค่อยเทียบกับเฉลยใน Section 11</p>
+
+        <div class="trouble-card">
+          <div class="tc-head">⚠ Scenario 7.1 — R1 ping 8.8.8.8 ได้ แต่ PC1 ping ไม่ได้</div>
+          <div class="tc-body">
+            <dl>
+              <dt>อาการ</dt>
+              <dd>Engineer ทดสอบจาก R1 ด้วย <code>ping 8.8.8.8</code> ได้ <code>!!!!!</code> สวยงาม จึงรายงานลูกค้าว่าระบบพร้อมใช้ แต่พอลูกค้าลองจาก PC1 กลับได้ <code>Request timed out.</code> ทุกครั้ง ทั้งที่ PC1 ping gateway 192.168.10.1 และ ping PC2 ได้ปกติ</dd>
+              <dt>สิ่งที่ผู้ใช้พบ</dt>
+              <dd>บน R1: <code>Success rate is 100 percent (5/5)</code> — บน PC1: <code>Request timed out.</code> ครบทั้ง 4 packet และ <code>tracert 8.8.8.8</code> วิ่งผ่าน 192.168.10.1 → 10.0.12.2 แล้วหลังจากนั้นเป็น <code>* * *</code> ตลอด</dd>
+              <dt>วิธีคิด</dt>
+              <dd>คำถามสำคัญที่สุด: <strong>ping สองครั้งนี้ "source IP" เหมือนกันหรือไม่?</strong> ping จาก R1 โดย default ใช้ source เป็น IP ของ interface ขาออก (ขา WAN 10.0.12.1) แต่ ping จาก PC1 ใช้ source 192.168.10.10 — ปลายทางจะตอบกลับได้ก็ต่อเมื่อ<strong>มี route กลับมาหา source นั้น</strong> ดังนั้นถ้าผลต่างกันตาม source ให้สงสัย return route ที่ฝั่งปลายทางทันที ไม่ใช่ฝั่งเรา</dd>
+              <dt>ขั้นตอนการตรวจสอบ</dt>
+              <dd><ol>
+                <li>ยืนยันอาการบน R1: <code>ping 8.8.8.8</code> (ผ่าน) แล้วตามด้วย <code>ping 8.8.8.8 source GigabitEthernet0/0</code> — ถ้าครั้งหลังไม่ผ่าน แสดงว่าปัญหาผูกกับ source 192.168.10.x จริง</li>
+                <li>ไล่ขาไป: R1 มี default route → R2 มี default route → packet ถึง R3 ได้ ขาไปจึงไม่ใช่ปัญหา</li>
+                <li>ไล่ขากลับ: ไปดูที่ R3 ด้วย <code>show ip route 192.168.10.10</code> ว่ามี route กลับหา subnet ต้นทางหรือไม่</li>
+                <li>เทียบกับรายการ route ที่ ISP config ให้จริง (<code>show running-config | include ip route</code> บน R3) กับสิ่งที่ระบบต้องการ</li>
+              </ol></dd>
+              <dt>ลำดับการ Troubleshoot</dt>
+              <dd>เทียบ source IP ของการทดสอบทั้งสองแบบ → พิสูจน์ด้วย ping แบบระบุ source → ไล่ routing table ขาไปจนถึงปลายทาง → ไล่ routing table <strong>ขากลับ</strong> จากปลายทางมาหา source</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="trouble-card">
+          <div class="tc-head">⚠ Scenario 7.2 — ใส่ default route แล้ว แต่ gateway of last resort "is not set"</div>
+          <div class="tc-body">
+            <dl>
+              <dt>อาการ</dt>
+              <dd>Intern คนหนึ่ง config R1 ใหม่ตั้งแต่ต้น แล้วพิมพ์ <code>ip route 0.0.0.0 0.0.0.0 10.0.23.2</code> (ตั้งใจชี้ "ออก Internet" เลยจำ IP ฝั่ง ISP มาใส่) คำสั่งกด Enter ผ่าน ไม่มี error ใด ๆ แต่ R1 ping ออกไปไหนไม่ได้เลยนอกจาก 10.0.12.2</dd>
+              <dt>สิ่งที่ผู้ใช้พบ</dt>
+              <dd><code>show running-config | include ip route</code> เห็นบรรทัด default route อยู่ครบ แต่ <code>show ip route</code> ขึ้น <code>Gateway of last resort is not set</code> และไม่มีบรรทัด <code>S*</code> ปรากฏใน routing table</dd>
+              <dt>วิธีคิด</dt>
+              <dd>บรรทัดที่อยู่ใน running-config ไม่ได้แปลว่าถูกใช้งานเสมอไป — static route จะถูก install ลง routing table (RIB) ก็ต่อเมื่อ router สามารถ <strong>resolve next-hop ได้</strong> (recursive lookup: ต้องมี route อื่นที่พาไปถึง next-hop นั้น) คำถามคือ R1 รู้จักทางไป 10.0.23.2 หรือไม่?</dd>
+              <dt>ขั้นตอนการตรวจสอบ</dt>
+              <dd><ol>
+                <li>เทียบสองมุมมอง: <code>show running-config | include ip route</code> กับ <code>show ip route</code> — ถ้า config มีแต่ RIB ไม่มี ให้สงสัย next-hop resolve ไม่ได้</li>
+                <li>ตรวจว่า next-hop อยู่ใน subnet ที่ R1 ต่อตรงหรือไม่: <code>show ip route 10.0.23.2</code> → ควรได้ <code>% Network not in table</code> ซึ่งยืนยันปัญหา</li>
+                <li>ทบทวน topology: subnet ที่ R1 ต่อตรงคือ 10.0.12.0/30 — next-hop ที่ถูกต้องของ R1 ต้องเป็นเพื่อนบ้านที่อยู่บนลิงก์เดียวกันเท่านั้น</li>
+              </ol></dd>
+              <dt>ลำดับการ Troubleshoot</dt>
+              <dd>เทียบ running-config กับ RIB → ตรวจการ resolve next-hop → แก้ next-hop ให้เป็นเพื่อนบ้านบนลิงก์ตรง</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="trouble-card">
+          <div class="tc-head">⚠ Scenario 7.3 — พิมพ์ ip route แล้วเจอ "% Inconsistent address and mask"</div>
+          <div class="tc-body">
+            <dl>
+              <dt>อาการ</dt>
+              <dd>Intern อีกคนเพิ่งเรียนเรื่อง ACL กับ OSPF มา พอจะเพิ่ม route ไป Branch LAN บน R2 จึงพิมพ์ <code>ip route 192.168.10.0 0.0.0.255 10.0.12.1</code> แล้ว IOS ตอบกลับด้วยข้อความ error ทันที</dd>
+              <dt>สิ่งที่ผู้ใช้พบ</dt>
+              <dd>ข้อความ <code>% Inconsistent address and mask</code> และ route ไม่ถูกสร้าง</dd>
+              <dt>วิธีคิด</dt>
+              <dd>ค่า <code>0.0.0.255</code> คือ <strong>wildcard mask</strong> ซึ่งใช้กับ ACL และคำสั่ง <code>network</code> ของ OSPF/EIGRP เท่านั้น ส่วนคำสั่ง <code>ip route</code> ต้องใช้ <strong>subnet mask</strong> เสมอ (บิต 1 ต่อเนื่องจากซ้าย เช่น 255.255.255.0) IOS ตรวจพบว่า address กับ mask ไม่สอดคล้องกันจึงปฏิเสธ — จุดที่อันตรายกว่าคือ wildcard บางค่า "บังเอิญ" เป็น mask ที่ valid แล้วคำสั่งผ่านโดยความหมายเพี้ยนไปเลย</dd>
+              <dt>ขั้นตอนการตรวจสอบ</dt>
+              <dd><ol>
+                <li>อ่าน error แล้วแยกให้ออกว่า parameter ตัวไหนของคำสั่งคือปัญหา (ตำแหน่งที่สองของ <code>ip route</code> คือ subnet mask)</li>
+                <li>ทบทวนว่าคำสั่งไหนใช้ subnet mask คำสั่งไหนใช้ wildcard mask แล้วแปลงค่าให้ถูก: /24 → 255.255.255.0</li>
+                <li>หลังแก้แล้วตรวจผลด้วย <code>show ip route 192.168.10.0</code> ว่า route ขึ้นเป็น <code>S</code> พร้อม [1/0]</li>
+              </ol></dd>
+              <dt>ลำดับการ Troubleshoot</dt>
+              <dd>อ่าน error message ให้จบ → ระบุ parameter ที่ผิด → แก้ด้วยรูปแบบที่ถูกของคำสั่งนั้น → verify ด้วย show</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 8. Packet Flow ===== -->
+      <section id="packetflow" class="section-card">
+        <h2><span class="section-num">8</span> Packet Flow</h2>
+        <p class="section-intro">วิเคราะห์เส้นทางของ <strong>PC1 ping 8.8.8.8</strong> ทีละ hop ทั้งขาไปและขากลับ (สมมุติว่าระบบ config สมบูรณ์แล้ว) — MAC address ที่ใช้: PC1 = <code>0050.7966.6801</code>, R1 G0/0 = <code>0c1a.2b00.1000</code>, R1 G0/1 = <code>0c1a.2b00.1001</code>, R2 G0/1 = <code>0c2a.2b00.2001</code>, R2 G0/2 = <code>0c2a.2b00.2002</code>, R3 G0/1 = <code>0c3a.2b00.3001</code></p>
+        <ol class="packet-flow">
+          <li>
+            <span class="pf-device">PC1 — ตัดสินใจส่งเข้า gateway</span>
+            <p>PC1 เทียบปลายทาง 8.8.8.8 กับ subnet ตัวเอง (192.168.10.0/24) → อยู่คนละ subnet จึงต้องส่งผ่าน default gateway 192.168.10.1 — PC1 ทำ ARP หา MAC ของ gateway (ไม่ใช่ของ 8.8.8.8) แล้วสร้าง ICMP Echo Request โดย TTL เริ่มต้น 128</p>
+            <div class="pf-frame">SRC MAC: 0050.7966.6801 (PC1) | DST MAC: 0c1a.2b00.1000 (R1 G0/0) | SRC IP: 192.168.10.10 | DST IP: 8.8.8.8</div>
+          </li>
+          <li>
+            <span class="pf-device">R1 — Longest Prefix Match ครั้งที่ 1</span>
+            <p>R1 เปิด routing table หา route ที่ match 8.8.8.8 → มีเพียง <code>S* 0.0.0.0/0 [1/0] via 10.0.12.2</code> เท่านั้นที่ match (connected ทั้งสองเส้นไม่ครอบ 8.8.8.8) → forward ออก G0/1 ไป next-hop 10.0.12.2, ลด TTL เหลือ 127, ถอด L2 header เดิมทิ้งแล้วสร้าง frame ใหม่ — <strong>IP ต้นทาง/ปลายทางไม่เปลี่ยน</strong></p>
+            <div class="pf-frame">SRC MAC: 0c1a.2b00.1001 (R1 G0/1) | DST MAC: 0c2a.2b00.2001 (R2 G0/1) | SRC IP: 192.168.10.10 | DST IP: 8.8.8.8</div>
+          </li>
+          <li>
+            <span class="pf-device">R2 — Longest Prefix Match ครั้งที่ 2</span>
+            <p>R2 หา route ที่ match 8.8.8.8 → route เจาะจง (192.168.10.0/24, connected /30 ทั้งหลาย) ไม่มีตัวไหนครอบ 8.8.8.8 เหลือเพียง <code>S* 0.0.0.0/0 via 10.0.23.2</code> → forward ออก G0/2, TTL เหลือ 126</p>
+            <div class="pf-frame">SRC MAC: 0c2a.2b00.2002 (R2 G0/2) | DST MAC: 0c3a.2b00.3001 (R3 G0/1) | SRC IP: 192.168.10.10 | DST IP: 8.8.8.8</div>
+          </li>
+          <li>
+            <span class="pf-device">R3 — ปลายทางรับ packet และสร้างคำตอบ</span>
+            <p>8.8.8.8 คือ Loopback0 ของ R3 เอง → R3 ไม่ forward ต่อ แต่ประมวลผลแล้วสร้าง ICMP Echo Reply โดยสลับ SRC/DST: ปลายทางใหม่คือ 192.168.10.10 — <strong>จุดชี้เป็นชี้ตายของขากลับ:</strong> R3 ต้องมี route ที่ match 192.168.10.10 ซึ่งก็คือ <code>S 192.168.0.0/16 [1/0] via 10.0.23.1</code> (summary route ที่ครอบทั้ง Branch และ HQ LAN) ถ้าไม่มีบรรทัดนี้ Echo Reply จะถูก drop ทิ้งตรงนี้ทันที</p>
+            <div class="pf-frame">SRC MAC: 0c3a.2b00.3001 (R3 G0/1) | DST MAC: 0c2a.2b00.2002 (R2 G0/2) | SRC IP: 8.8.8.8 | DST IP: 192.168.10.10</div>
+          </li>
+          <li>
+            <span class="pf-device">R2 — ขากลับ: route เจาะจงชนะ default</span>
+            <p>R2 หา route ที่ match 192.168.10.10 → มี match สองตัว: <code>0.0.0.0/0</code> (prefix ยาว 0 บิต) และ <code>S 192.168.10.0/24 via 10.0.12.1</code> (prefix ยาว 24 บิต) → Longest Prefix Match เลือก /24 → forward ออก G0/1 ไป 10.0.12.1 — นี่คือเหตุผลที่ R2 ต้องมี route เจาะจงของ Branch LAN ไม่อย่างนั้นขากลับจะไหลออกไปทาง ISP ผิดทิศ</p>
+            <div class="pf-frame">SRC MAC: 0c2a.2b00.2001 (R2 G0/1) | DST MAC: 0c1a.2b00.1001 (R1 G0/1) | SRC IP: 8.8.8.8 | DST IP: 192.168.10.10</div>
+          </li>
+          <li>
+            <span class="pf-device">R1 — ส่งเข้า LAN ปลายทาง</span>
+            <p>R1 หา route ที่ match 192.168.10.10 → <code>C 192.168.10.0/24, GigabitEthernet0/0</code> (connected /24 ชนะ default /0) → ปลายทางอยู่บน subnet ที่ต่อตรง R1 ทำ ARP หา MAC ของ 192.168.10.10 แล้วส่ง frame สุดท้ายเข้า LAN</p>
+            <div class="pf-frame">SRC MAC: 0c1a.2b00.1000 (R1 G0/0) | DST MAC: 0050.7966.6801 (PC1) | SRC IP: 8.8.8.8 | DST IP: 192.168.10.10</div>
+          </li>
+          <li>
+            <span class="pf-device">PC1 — รับ Echo Reply</span>
+            <p>PC1 ได้รับคำตอบ แสดงผล <code>Reply from 8.8.8.8: bytes=32 time=2ms TTL=253</code> (TTL ขากลับเริ่มที่ 255 จาก IOS ถูกลดโดย R2 และ R1 รวม 2 ครั้ง) — ครบวงจรทั้งขาไปและขากลับ</p>
+            <div class="pf-frame">ผลบนหน้าจอ: Reply from 8.8.8.8: bytes=32 time=2ms TTL=253</div>
+          </li>
+        </ol>
+        <div class="callout think">
+          <span class="co-icon">🧠</span>
+          <div class="co-body">
+            <span class="co-title">Insight ที่ต้องจำขึ้นใจ</span>
+            <p style="margin:0 0 6px;">1) MAC address เปลี่ยนใหม่ทุก hop แต่ SRC/DST IP คงเดิมตลอดทาง (ไม่มี NAT ใน Lab นี้)</p>
+            <p style="margin:0 0 6px;">2) <strong>ทุก router ระหว่างทางต้องรู้จักทั้งขาไปและขากลับ</strong> — ping จะสำเร็จก็ต่อเมื่อ lookup ผ่านครบทุกจุดทั้งสองทิศทาง ขาดจุดเดียว = timed out เหมือนกันหมด ทำให้อาการภายนอกแยกไม่ออกว่าพังตรงไหน ต้องไล่ทีละ hop เท่านั้น</p>
+            <p style="margin:0;">3) การ ping ที่ล้มเหลว บอกแค่ "วงจรไม่ครบ" ไม่ได้บอกว่าขาไหนขาด — traceroute ช่วยชี้จุดตายของขาไปได้ แต่ขากลับต้องเปิด routing table ปลายทางดูเอง</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 9. Reviewer Questions ===== -->
+      <section id="reviewer" class="section-card">
+        <h2><span class="section-num">9</span> Reviewer Questions</h2>
+        <p class="section-intro">คำถามแบบที่ Senior / Reviewer ในบริษัท SI ถามจริง ลองตอบปากเปล่าก่อนดูแนวคำตอบใน Answer Key</p>
+        <div class="reviewer-q">
+          <div class="rq-label">Q1</div>
+          <div class="rq-q">Longest Prefix Match ทำงานอย่างไร ยกตัวอย่างจาก routing table ของ R2 ใน Lab นี้ประกอบ</div>
+          <div class="rq-hint">💡 แนวคิด: router เปรียบเทียบ "จำนวนบิตของ prefix ที่ match" ระหว่าง route ทุกตัวที่ครอบปลายทาง — ลองใช้เคสปลายทาง 192.168.10.55 อธิบาย</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q2</div>
+          <div class="rq-q">ทำไม 0.0.0.0/0 จึง match ทุก IP address ที่เป็นไปได้ อธิบายในเชิงบิต</div>
+          <div class="rq-hint">💡 แนวคิด: /0 แปลว่า "ต้องตรงกัน 0 บิตแรก" — เงื่อนไขที่ IP ไหน ๆ ก็ผ่านเสมอ แล้วทำไมมันถึงแพ้ route อื่นตลอด?</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q3</div>
+          <div class="rq-q">สมมุติ router มี route ที่ match ปลายทางเดียวกันทั้ง /24, /16 และ /0 พร้อมกัน router จะเลือกตัวไหน และถ้า /24 นั้นมาจาก OSPF ส่วน /16 มาจาก static ล่ะ?</div>
+          <div class="rq-hint">💡 แนวคิด: ระวังกับดัก — AD ของ static (1) ต่ำกว่า OSPF (110) แต่คำถามนี้ AD เกี่ยวหรือไม่? ลำดับการตัดสินใจข้อไหนมาก่อน?</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q4</div>
+          <div class="rq-q">Administrative Distance กับ metric ต่างกันอย่างไร และแต่ละตัวถูกใช้ตัดสิน "ตอนไหน"</div>
+          <div class="rq-hint">💡 แนวคิด: ตัวหนึ่งเปรียบเทียบ "ความน่าเชื่อถือของแหล่งที่มาของ route" อีกตัวเปรียบเทียบ "ความดีของเส้นทางภายในแหล่งเดียวกัน" — อะไรเกิดก่อน install ลง table อะไรเกิดหลัง</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q5</div>
+          <div class="rq-q">ทำไม ISP ตัวจริงจึงไม่ควรถือ route ละเอียด (เช่น /24 รายเครือข่าย) ของลูกค้าทุกราย แล้วแนวทางที่ถูกต้องคืออะไร — เชื่อมโยงกับ route 192.168.0.0/16 บน R3 ใน Lab นี้</div>
+          <div class="rq-hint">💡 แนวคิด: คิดเรื่อง scale ของ routing table, ภาระเวลาลูกค้าเพิ่ม subnet, และคำว่า summarization / aggregation</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q6</div>
+          <div class="rq-q">อธิบายว่าเหตุใด router ping ปลายทางได้ แต่เครื่องลูกข่ายหลัง router เดียวกัน ping ปลายทางเดียวกันไม่ได้ และจะพิสูจน์สมมุติฐานนี้จากบน router ได้อย่างไรโดยไม่ต้องไปที่เครื่องลูกข่าย</div>
+          <div class="rq-hint">💡 แนวคิด: source IP ของ ping ทั้งสองกรณีคืออะไร แล้ว option ไหนของคำสั่ง ping บน IOS ช่วยจำลอง source ได้</div>
+        </div>
+        <div class="reviewer-q">
+          <div class="rq-label">Q7</div>
+          <div class="rq-q">ถ้า next-hop ของ static route ใช้งานไม่ได้ (เช่น อุปกรณ์ปลายทางดับ หรือ interface ฝั่งเราถูก shutdown) route นั้นจะยังอยู่ใน routing table หรือไม่ — แยกตอบทีละกรณี</div>
+          <div class="rq-hint">💡 แนวคิด: static route จะอยู่ใน RIB ตราบใดที่ next-hop ยัง resolve ได้ — กรณีไหน connected route ที่ใช้ resolve หายไป กรณีไหนยังอยู่</div>
+        </div>
+      </section>
+
+      <!-- ===== 10. Hidden Traps ===== -->
+      <section id="traps" class="section-card">
+        <h2><span class="section-num">10</span> Hidden Traps</h2>
+        <div class="trap-banner">
+          <span class="tb-icon">🪤</span>
+          <div>
+            <p style="margin:0 0 6px;"><strong>Lab นี้มีจุดผิดซ่อนอยู่ <span class="trap-count">3 จุด</span></strong></p>
+            <p style="margin:0;">กระจายอยู่ใน 3 บริเวณ: ใน <strong>Addressing Table</strong> (Section 3), ใน <strong>Initial Configuration ที่ให้มา</strong> (Section 4) และใน<strong>ตัวโจทย์ Configuration Tasks เอง</strong> (Section 5 — บางข้อสั่งงาน "ไม่ครบ" เท่าที่ระบบต้องการจริง) จงหาให้เจอและแก้ให้ถูกเหมือนตรวจงานหน้างานจริง ห้ามเดา — ทุกจุดพิสูจน์ได้ด้วยคำสั่ง show และการทดสอบ เฉลยครบทุกจุดอยู่ใน Answer Key</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 11. Answer Key ===== -->
+      <section id="answerkey" class="section-card answer-zone">
+        <h2><span class="section-num">11</span> Answer Key — เฉลยละเอียด</h2>
+        <div class="answer-warning">
+          🛑 <strong>หยุดก่อน!</strong> เปิดเฉลยเฉพาะเมื่อทำโจทย์ครบและตรวจสอบด้วยตัวเองแล้วเท่านั้น
+          การเปิดเฉลยเร็วเกินไปคือสาเหตุอันดับหนึ่งที่ทำให้ตอบคำถาม reviewer ไม่ได้
+        </div>
+
+        <details class="answer">
+          <summary>เฉลย Configuration ที่ถูกต้อง (ทีละอุปกรณ์)</summary>
+          <div class="answer-body">
+            <h4>R1 (Branch)</h4>
+            <div class="cli">
+              <div class="cli-title">R1 — configuration</div>
+<pre><span class="c">! ลบ default route ที่ mask ผิดจาก initial config ออกก่อน</span>
+no ip route 0.0.0.0 255.255.255.255 10.0.12.2
+!
+hostname R1
+!
+interface GigabitEthernet0/0
+ description LAN Branch 192.168.10.0/24
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description WAN1 to R2-HQ
+ ip address 10.0.12.1 255.255.255.252
+ no shutdown
+!
+<span class="c">! default route ที่ถูกต้อง: network 0.0.0.0 mask 0.0.0.0 = ครอบทุกปลายทาง</span>
+ip route 0.0.0.0 0.0.0.0 10.0.12.2</pre>
+            </div>
+            <p><strong>เหตุผล:</strong> R1 เป็น stub network มีทางออกทางเดียว — default route เส้นเดียวเพียงพอและตรง design intent การเพิ่ม route เจาะจงที่นี่มีแต่เพิ่มภาระดูแลโดยไม่ได้อะไรเพิ่ม</p>
+
+            <h4>R2 (HQ)</h4>
+            <div class="cli">
+              <div class="cli-title">R2 — configuration</div>
+<pre>hostname R2
+!
+interface GigabitEthernet0/0
+ description LAN HQ 192.168.20.0/24
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet0/1
+ description WAN1 to R1-Branch
+ ip address 10.0.12.2 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/2
+ description WAN2 to R3-ISP
+ ip address 10.0.23.1 255.255.255.252
+ no shutdown
+!
+<span class="c">! route เจาะจงไป Branch LAN — จำเป็นเพื่อให้ขากลับจาก HQ/ISP วิ่งถูกทิศ</span>
+ip route 192.168.10.0 255.255.255.0 10.0.12.1
+<span class="c">! ปลายทางอื่นทั้งหมดออก ISP</span>
+ip route 0.0.0.0 0.0.0.0 10.0.23.2</pre>
+            </div>
+            <p><strong>เหตุผล:</strong> R2 คือทางแยก — ถ้าไม่มี route เจาะจง 192.168.10.0/24 ทราฟฟิกที่จะกลับสาขาจะไป match default แล้วไหลออก ISP ผิดทาง ส่วน default ชี้ 10.0.23.2 ทำให้ HQ ไม่ต้องรู้จักปลายทางบน Internet รายตัว</p>
+
+            <h4>R3 (ISP)</h4>
+            <div class="cli">
+              <div class="cli-title">R3 — configuration</div>
+<pre>hostname R3
+!
+interface GigabitEthernet0/1
+ description WAN2 to R2-HQ
+ <span class="c">! mask ที่ถูกคือ /30 (255.255.255.252) — ไม่ใช่ /24 ตามตารางที่แจกมา</span>
+ ip address 10.0.23.2 255.255.255.252
+ no shutdown
+!
+interface Loopback0
+ description Simulated Internet host 8.8.8.8
+ ip address 8.8.8.8 255.255.255.255
+!
+<span class="c">! รายการตามใบร้องขอเดิม: route ไปลิงก์ WAN1 ของลูกค้า</span>
+ip route 10.0.12.0 255.255.255.252 10.0.23.1
+<span class="c">! return route ที่ใบร้องขอ "ตกหล่น": summary เดียวครอบทั้ง 192.168.10.0/24 และ 192.168.20.0/24</span>
+ip route 192.168.0.0 255.255.0.0 10.0.23.1</pre>
+            </div>
+            <p><strong>เหตุผล:</strong> ISP ต้องมีเส้นทางกลับหา<strong>ทุก source ที่จะคุยกับ 8.8.8.8</strong> ซึ่งรวมถึง LAN ทั้งสองฝั่งของลูกค้า การใช้ summary route 192.168.0.0/16 เส้นเดียวแทน /24 สองเส้น คือแนวทาง aggregation ที่ ISP จริงใช้ — ลูกค้าเพิ่ม subnet 192.168.x.0/24 ใหม่ในอนาคตก็ไม่ต้องแก้อะไรที่ ISP อีก</p>
+
+            <h4>PC1 / PC2</h4>
+            <div class="cli">
+              <div class="cli-title">PC settings</div>
+<pre><span class="c">! PC1: IP 192.168.10.10  mask 255.255.255.0  gateway 192.168.10.1 (R1 G0/0)</span>
+<span class="c">! PC2: IP 192.168.20.10  mask 255.255.255.0  gateway 192.168.20.1 (R2 G0/0)</span></pre>
+            </div>
+            <p><strong>เหตุผล:</strong> default gateway ของ PC ต้องเป็น IP ขา LAN ของ router ใน subnet เดียวกันเสมอ — ผิดตรงนี้จุดเดียว อาการจะเหมือน routing พังทั้งระบบ</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>ผลลัพธ์ที่ควรได้ (Expected Output)</summary>
+          <div class="answer-body">
+            <div class="cli">
+              <div class="cli-title">R1# show ip route (ตัวอย่างผลลัพธ์)</div>
+<pre>Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       i - IS-IS, su - IS-IS summary, * - candidate default
+       (ตัด legend บางส่วนเพื่อความกระชับ)
+
+<span class="hl">Gateway of last resort is 10.0.12.2 to network 0.0.0.0</span>
+
+<span class="hl">S*    0.0.0.0/0 [1/0] via 10.0.12.2</span>
+      10.0.0.0/8 is variably subnetted, 2 subnets, 2 masks
+C        10.0.12.0/30 is directly connected, GigabitEthernet0/1
+L        10.0.12.1/32 is directly connected, GigabitEthernet0/1
+      192.168.10.0/24 is variably subnetted, 2 subnets, 2 masks
+C        192.168.10.0/24 is directly connected, GigabitEthernet0/0
+L        192.168.10.1/32 is directly connected, GigabitEthernet0/0</pre>
+            </div>
+            <p>จุดที่บอกว่า "ผ่าน": มีบรรทัด <code>S*</code> พร้อม [1/0] และ gateway of last resort ชี้ 10.0.12.2 — ถ้าขึ้น "is not set" แปลว่า default route ยังผิดอยู่ (ดูเฉลย trap)</p>
+            <div class="cli">
+              <div class="cli-title">R3# show ip route (ตัวอย่างผลลัพธ์ หลังเพิ่ม route ครบ)</div>
+<pre>Gateway of last resort is not set
+
+      8.0.0.0/32 is subnetted, 1 subnets
+C        8.8.8.8 is directly connected, Loopback0
+      10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+<span class="hl">S        10.0.12.0/30 [1/0] via 10.0.23.1</span>
+C        10.0.23.0/30 is directly connected, GigabitEthernet0/1
+L        10.0.23.2/32 is directly connected, GigabitEthernet0/1
+<span class="hl">S     192.168.0.0/16 [1/0] via 10.0.23.1</span>
+      (ถ้าไม่มีบรรทัด 192.168.0.0/16 นี้ — PC1/PC2 จะ ping 8.8.8.8 ไม่ได้)</pre>
+            </div>
+            <p>สังเกตว่า R3 ไม่มี default route ก็ไม่เป็นไรใน Lab นี้ เพราะปลายทางทั้งหมดที่ R3 ต้องตอบกลับถูกครอบด้วย connected + static สองเส้นแล้ว (routing table ของ R2 ดูได้ในแบบฝึก LPM ใน Section 6)</p>
+            <div class="cli">
+              <div class="cli-title">R2# show ip route 192.168.10.55 (พิสูจน์ LPM)</div>
+<pre>Routing entry for <span class="hl">192.168.10.0/24</span>
+  Known via "static", distance 1, metric 0
+  Routing Descriptor Blocks:
+  * 10.0.12.1
+      Route metric is 0, traffic share count is 1</pre>
+            </div>
+            <div class="cli">
+              <div class="cli-title">PC1&gt; ping 8.8.8.8 (เกณฑ์ตรวจรับข้อสุดท้าย)</div>
+<pre>Pinging 8.8.8.8 with 32 bytes of data:
+
+Reply from 8.8.8.8: bytes=32 time=2ms TTL=253
+Reply from 8.8.8.8: bytes=32 time=1ms TTL=253
+Reply from 8.8.8.8: bytes=32 time=1ms TTL=253
+Reply from 8.8.8.8: bytes=32 time=2ms TTL=253
+
+Ping statistics for 8.8.8.8:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</pre>
+            </div>
+            <p>วิธีอ่าน: TTL=253 สอดคล้องกับเส้นทางที่ผ่าน router 2 ตัวขากลับ (IOS ตอบด้วย TTL 255 ถูกลดโดย R2 และ R1) — ตัวเลข TTL ใช้ประเมินจำนวน hop ได้จริงหน้างาน ส่วนคำเฉลยแบบฝึก LPM ทั้ง 3 ข้อของ Section 6 อยู่ในเฉลย "วิธีคิดและเหตุผล" ถัดไป</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>วิธีคิดและเหตุผล (Engineer's Reasoning)</summary>
+          <div class="answer-body">
+            <p><strong>ไล่จาก requirement → design → config:</strong></p>
+            <ul>
+              <li><strong>Requirement:</strong> PC1 ↔ PC2 ถึงกัน และทั้งคู่ออก "Internet" (8.8.8.8) ได้ — แปลว่า router ทุกตัวบนเส้นทางต้อง lookup สำเร็จทั้งสองทิศทางสำหรับทุกคู่ source/destination ที่เกณฑ์ตรวจรับกำหนด</li>
+              <li><strong>Design ฝั่งสาขา (R1):</strong> ทางออกเดียว → default route เส้นเดียวคือคำตอบที่ "ถูกทั้งทางเทคนิคและทางการดูแลรักษา" เพราะ HQ เพิ่ม subnet ใหม่กี่ครั้ง สาขาก็ไม่ต้องแก้ config</li>
+              <li><strong>Design ฝั่ง HQ (R2):</strong> ต้องแยกทิศให้ถูก — ทิศสาขาใช้ route เจาะจง /24, ทิศ Internet ใช้ default — ตรงนี้คือหัวใจของ Longest Prefix Match: route เจาะจงกว่าจะดึงทราฟฟิกของสาขาออกจาก default โดยอัตโนมัติ</li>
+              <li><strong>Design ฝั่ง ISP (R3):</strong> ISP ไม่ควรรู้จักเครือข่ายภายในของลูกค้ารายตัว จึงใช้ summary 192.168.0.0/16 เส้นเดียว — นี่คือภาพจำลองของหลัก aggregation ที่ทำให้ Internet ทั้งใบ scale ได้</li>
+            </ul>
+            <p><strong>เฉลยแบบฝึก LPM (Section 6):</strong></p>
+            <ol>
+              <li><strong>ปลายทาง 192.168.10.55</strong> → match ได้ 2 route: <code>0.0.0.0/0</code> (0 บิต) กับ <code>S 192.168.10.0/24</code> (24 บิต) → <strong>เลือก /24 via 10.0.12.1</strong> เพราะ prefix ยาวกว่า — AD/metric ไม่ถูกนำมาคิดเลยเพราะ prefix ไม่เท่ากัน</li>
+              <li><strong>ปลายทาง 8.8.8.8</strong> → ไม่มี route เจาะจงใดครอบ → match ได้เพียง <code>S* 0.0.0.0/0</code> → <strong>ออก G0/2 ไป 10.0.23.2</strong> — default route คือ "ตัวเลือกสุดท้าย" ที่ match ทุกอย่างแต่แพ้ทุกคน</li>
+              <li><strong>ปลายทาง 10.0.12.2</strong> → match ได้ 3 route: <code>0.0.0.0/0</code>, <code>C 10.0.12.0/30</code> และ <code>L 10.0.12.2/32</code> → <strong>เลือก L /32</strong> ซึ่งคือ IP ของ R2 เอง — packet ไม่ถูก forward แต่ถูกส่งขึ้น process ภายใน router (นี่คือหน้าที่ของ local route ที่ IOS สร้างให้อัตโนมัติ)</li>
+            </ol>
+            <p><strong>สรุปกติกาสามชั้น:</strong> (1) LPM ตัดสินก่อนเสมอ (2) prefix เท่ากันจากหลาย source → AD ต่ำกว่าชนะ (3) source เดียวกัน prefix เดียวกันหลายเส้นทาง → metric ต่ำกว่าชนะ (ถ้า metric เท่ากันหลายเส้น จะเกิด load balancing)</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>เฉลย Troubleshooting Scenarios</summary>
+          <div class="answer-body">
+            <h4>Scenario 7.1 — R1 ping 8.8.8.8 ได้ แต่ PC1 ping ไม่ได้</h4>
+            <p><strong>สาเหตุจริง:</strong> R3 ไม่มี route กลับหา 192.168.10.0/24 — ขาไปสมบูรณ์ (R1 และ R2 มี default พาไปถึง 8.8.8.8) แต่ Echo Reply ที่ R3 สร้างมีปลายทาง 192.168.10.10 ซึ่ง R3 ไม่มี route จึง drop ทิ้งเงียบ ๆ ส่วนที่ R1 ping ได้เพราะ ping จาก router ใช้ source เป็น IP ขาออกคือ 10.0.12.1 ซึ่งอยู่ใน 10.0.12.0/30 ที่ R3 มี route (ตามใบร้องขอเดิม) พอดี — "ผลทดสอบสวยหรูที่หลอกเราเอง"</p>
+            <div class="cli">
+              <div class="cli-title">คำสั่งที่ใช้พิสูจน์ (บน R1 และ R3)</div>
+<pre><span class="p">R1#</span> ping 8.8.8.8
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/2/4 ms
+<span class="p">R1#</span> ping 8.8.8.8 source GigabitEthernet0/0
+Packet sent with a source address of 192.168.10.1
+<span class="hl">.....</span>
+Success rate is 0 percent (0/5)
+<span class="c">! source ขา WAN ผ่าน / source ขา LAN ไม่ผ่าน = ปลายทางไม่มี return route</span>
+
+<span class="p">R3#</span> show ip route 192.168.10.10
+<span class="hl">% Network not in table</span></pre>
+            </div>
+            <p><strong>วิธีแก้:</strong> เพิ่ม <code>ip route 192.168.0.0 255.255.0.0 10.0.23.1</code> บน R3 (หรือในโลกจริง: ส่งใบร้องขอ route เพิ่มไปที่ ISP) <strong>บทเรียน:</strong> ทดสอบด้วย source ของผู้ใช้จริงเสมอ — <code>ping ... source</code> คือเครื่องมือจำลองที่ประหยัดเวลาที่สุด และอย่าปิดงานด้วยการ ping จาก router เพียงอย่างเดียว</p>
+
+            <h4>Scenario 7.2 — default route ใส่ next-hop ผิดเป็น 10.0.23.2 บน R1</h4>
+            <p><strong>สาเหตุจริง:</strong> next-hop 10.0.23.2 ไม่ได้อยู่ใน subnet ที่ R1 ต่อตรง (R1 ต่อกับ 10.0.12.0/30 เท่านั้น) การ resolve จึงต้องพึ่ง route อื่น แต่ route เดียวที่จะครอบ 10.0.23.2 ได้ก็คือ default route ตัวมันเอง — IOS ไม่ยอมให้ static route recursive ผ่านตัวเอง จึง<strong>ไม่ install ลง RIB</strong>: บรรทัดอยู่ใน running-config ครบ แต่ routing table ไม่มี S* และ gateway of last resort "is not set"</p>
+            <div class="cli">
+              <div class="cli-title">การพิสูจน์บน R1</div>
+<pre><span class="p">R1#</span> show running-config | include ip route
+ip route 0.0.0.0 0.0.0.0 10.0.23.2
+<span class="p">R1#</span> show ip route | include Gateway
+<span class="hl">Gateway of last resort is not set</span>
+<span class="p">R1#</span> show ip route 10.0.23.2
+% Network not in table</pre>
+            </div>
+            <p><strong>วิธีแก้:</strong> <code>no ip route 0.0.0.0 0.0.0.0 10.0.23.2</code> แล้วใส่ <code>ip route 0.0.0.0 0.0.0.0 10.0.12.2</code> — next-hop ต้องเป็นเพื่อนบ้านบนลิงก์ที่ต่อตรงเสมอ (สำหรับ design ระดับนี้) <strong>บทเรียน:</strong> "running-config มี" ไม่เท่ากับ "route ใช้งานได้" ต้องตรวจ RIB ทุกครั้ง</p>
+
+            <h4>Scenario 7.3 — พิมพ์ ip route ด้วย wildcard mask</h4>
+            <p><strong>สาเหตุจริง:</strong> สับสนระหว่าง subnet mask กับ wildcard mask — <code>ip route</code> ต้องการ subnet mask (255.255.255.0) แต่ผู้เรียนใส่ 0.0.0.255 ซึ่งเป็นรูป wildcard ที่ใช้กับ ACL / <code>network</code> statement ของ OSPF เท่านั้น IOS ตรวจว่า address AND mask แล้วไม่สอดคล้องกับ address ที่ให้มา จึงปฏิเสธด้วย <code>% Inconsistent address and mask</code></p>
+            <div class="cli">
+              <div class="cli-title">คำสั่งผิด → คำสั่งถูก (บน R2)</div>
+<pre><span class="p">R2(config)#</span> <span class="bad">ip route 192.168.10.0 0.0.0.255 10.0.12.1</span>
+<span class="hl">% Inconsistent address and mask</span>
+<span class="p">R2(config)#</span> ip route 192.168.10.0 255.255.255.0 10.0.12.1
+<span class="c">! ตรวจผล: show ip route ต้องเห็น  S 192.168.10.0/24 [1/0] via 10.0.12.1</span></pre>
+            </div>
+            <p><strong>บทเรียน:</strong> จำเป็นคู่: <code>ip route</code> / interface = subnet mask, ACL / OSPF network = wildcard mask — และพึงระวังว่า wildcard บางค่า (เช่น 0.0.0.0) เป็น mask ที่ valid โดยบังเอิญ คำสั่งจะผ่านแต่ความหมายกลายเป็น host route ทันที ซึ่งอันตรายกว่า error เพราะไม่มีใครเตือน (เทียบกับ trap ใน initial config ของ Lab นี้)</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>เฉลย Hidden Traps (3 จุด)</summary>
+          <div class="answer-body">
+            <ol>
+              <li>
+                <strong>Trap 1 — Initial Configuration ของ R1 (Section 4):</strong> บรรทัด <span class="bad">ip route 0.0.0.0 255.255.255.255 10.0.12.2</span> ใช้ mask ผิด — ค่า 255.255.255.255 ทำให้มันกลายเป็น <strong>host route ไปยังปลายทาง 0.0.0.0/32</strong> ไม่ใช่ default route คำสั่งนี้ IOS ยอมรับโดยไม่มี error ใด ๆ จึงหลอกตาได้แนบเนียน ที่ถูกต้องคือ <code>ip route 0.0.0.0 0.0.0.0 10.0.12.2</code> <strong>อาการถ้าไม่เจอ:</strong> routing table ของ R1 ไม่มี S* / gateway of last resort "is not set" — R1 และ PC1 ส่งอะไรออกนอก subnet ที่ต่อตรงไม่ได้เลย แม้แต่ PC1 ping PC2 ก็ล้มเหลวตั้งแต่ Task 6</li>
+              <li>
+                <strong>Trap 2 — Addressing Table (Section 3):</strong> Subnet mask ของ R3 G0/1 ในตารางเขียนว่า <span class="bad">255.255.255.0</span> ทั้งที่ลิงก์ WAN2 คือ 10.0.23.0/30 — ที่ถูกต้องคือ <code>255.255.255.252</code> ให้ตรงกับฝั่ง R2 <strong>อาการถ้าไม่เจอ:</strong> ตัวนี้ร้ายเพราะ "ดูเหมือนใช้งานได้" — R2 กับ R3 ยัง ping กันได้ตามปกติ แต่ R3 จะเชื่อว่าทั้ง 10.0.23.0/24 ต่อตรงกับตัวเอง เป็นระเบิดเวลา: หากในอนาคตมี subnet อื่นในช่วง 10.0.23.x อยู่หลัง R2 (เช่น ลิงก์ 10.0.23.128/30) R3 จะไม่ยอมใช้ route ไปหามันแต่พยายาม ARP ตรง ๆ ทำให้เข้าไม่ถึง อีกทั้ง mask mismatch บน point-to-point link ถือว่าผิดมาตรฐานการส่งมอบงาน reviewer ตรวจเจอจาก <code>show ip interface brief</code> + <code>show running-config</code> เสมอ</li>
+              <li>
+                <strong>Trap 3 — ตัวโจทย์ Task 7 (Section 5):</strong> ใบร้องขอ route ของ ISP สั่งเพิ่มเฉพาะ <span class="bad">10.0.12.0/30 → 10.0.23.1</span> โดย<strong>ไม่มี route กลับหา 192.168.10.0/24 และ 192.168.20.0/24 เลย</strong> — ผู้เรียนต้องวิเคราะห์เองว่า Echo Reply จาก 8.8.8.8 ไปหา PC ทั้งสองเครื่องไม่มีทางกลับ ที่ถูกต้องคือเพิ่ม <code>ip route 192.168.0.0 255.255.0.0 10.0.23.1</code> (summary เส้นเดียวครอบทั้งสอง LAN ตามแนวทาง aggregation ของ ISP) <strong>อาการถ้าไม่เจอ:</strong> Task 8 ผ่านแค่ 2 จาก 4 รายการ — PC1 ↔ PC2 ได้, R1 ping 8.8.8.8 ได้ แต่ PC1 และ PC2 ping 8.8.8.8 เป็น Request timed out ทั้งคู่ (คือ Scenario 7.1 แบบเต็ม ๆ) ถ้าผู้เรียนรายงานว่า "ระบบพร้อมใช้" เพราะทดสอบจาก router อย่างเดียว จะตกเกณฑ์ตรวจรับของลูกค้าทันที</li>
+            </ol>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>แนวคำตอบ Reviewer Questions</summary>
+          <div class="answer-body">
+            <h4>Q1 — Longest Prefix Match ทำงานอย่างไร</h4>
+            <p>เมื่อ packet มาถึง router จะนำ destination IP ไปเทียบกับทุก route ใน table โดยดูว่า "บิตต้น ๆ ของปลายทางตรงกับ prefix ของ route ครบตามความยาว prefix หรือไม่" route ทุกตัวที่ตรงถือว่า match แล้วเลือกตัวที่ <strong>prefix ยาวที่สุด</strong> ตัวอย่างจาก R2: ปลายทาง 192.168.10.55 match ทั้ง 0.0.0.0/0 (0 บิต) และ 192.168.10.0/24 (24 บิต) → ใช้ /24 ชี้ 10.0.12.1 — reviewer อยากได้ยินคำว่า "เจาะจงที่สุดชนะ และตัดสินก่อน AD/metric เสมอ"</p>
+            <h4>Q2 — ทำไม 0.0.0.0/0 match ทุก IP</h4>
+            <p>ความยาว prefix /0 หมายถึง "ต้องตรงกัน 0 บิตแรก" — ไม่มีเงื่อนไขให้ตรวจ IP ใดก็ผ่านเงื่อนไขโดยอัตโนมัติ ดังนั้น 0.0.0.0/0 จึง match ทุกปลายทางที่เป็นไปได้ แต่เพราะความยาว 0 บิตมันจึง<strong>แพ้ route อื่นทุกตัว</strong>ที่ match เหมือนกัน — เป็น "ตาข่ายรองรับชั้นสุดท้าย" โดยธรรมชาติของ LPM ไม่ต้องมีกลไกพิเศษใด ๆ</p>
+            <h4>Q3 — /24 vs /16 vs /0 (และถ้าคนละ protocol)</h4>
+            <p>เลือก /24 เพราะ prefix ยาวที่สุด — จบแค่นั้น <strong>AD ไม่เกี่ยวเลย</strong>แม้ /24 จะมาจาก OSPF (AD 110) และ /16 มาจาก static (AD 1) ก็ตาม เพราะ AD ใช้เปรียบเทียบเฉพาะกรณี "prefix เดียวกันเป๊ะ ๆ จากหลาย source ว่าตัวไหนได้ลง table" ส่วนการ forward เทียบกันที่ความยาว prefix ของ route ที่อยู่ใน table แล้วเท่านั้น — คำถามนี้คือกับดักยอดนิยมในห้องสัมภาษณ์</p>
+            <h4>Q4 — AD กับ metric ต่างกันอย่างไร</h4>
+            <p><strong>AD = ความน่าเชื่อถือของแหล่งที่มา</strong> (connected 0, static 1, eBGP 20, EIGRP 90, OSPF 110, RIP 120) ใช้ตัดสินเมื่อ prefix เดียวกันถูกเรียนรู้จากหลาย source — ตัวที่ AD ต่ำสุดได้ install ลง routing table <strong>metric = ความดีของเส้นทางภายใน protocol เดียวกัน</strong> (เช่น OSPF cost, RIP hop count) ใช้เลือก path ที่ดีที่สุดก่อนเสนอ route ให้ RIB ลำดับใช้งานจริง: LPM (ตอน forward) ← AD ← metric (สองตัวหลังเกิดตอนสร้าง table)</p>
+            <h4>Q5 — ทำไม ISP ไม่ควรถือ route ละเอียดของลูกค้า</h4>
+            <p>เหตุผลหลักคือ <strong>scale และภาระการเปลี่ยนแปลง</strong>: ISP มีลูกค้าหลักพันราย ถ้าถือ /24 รายเครือข่ายของทุกราย routing table จะบวมและทุกครั้งที่ลูกค้าเพิ่ม subnet ต้องเปิด ticket แก้ config ที่ ISP — เสี่ยงผิดพลาดและช้า แนวทางที่ถูกคือ <strong>summarization/aggregation</strong>: ตกลง block ที่ครอบทั้งหมดของลูกค้าแล้วถือ route เดียว เหมือน 192.168.0.0/16 → 10.0.23.1 บน R3 ใน Lab นี้ — ลูกค้าจัดสรร subnet ภายใน block ยังไงก็ไม่กระทบ ISP (บน Internet จริงหลักการเดียวกันนี้คือการ advertise aggregate ผ่าน BGP)</p>
+            <h4>Q6 — ทำไม router ping ได้แต่เครื่องลูกข่าย ping ไม่ได้</h4>
+            <p>เพราะ <strong>source IP ต่างกัน</strong>: ping จาก router โดย default ใช้ IP ของ interface ขาออก (ขา WAN) ซึ่งปลายทางมักมี route กลับ แต่เครื่องลูกข่ายใช้ IP ใน LAN ซึ่งปลายทางอาจไม่มี return route — พิสูจน์จากบน router ได้ด้วย <code>ping &lt;dest&gt; source &lt;LAN interface&gt;</code>: ถ้าแบบระบุ source ล้มเหลวขณะที่แบบธรรมดาผ่าน สรุปได้ทันทีว่าปลายทางขาด return route ไปยัง LAN subnet โดยไม่ต้องเดินไปที่เครื่องผู้ใช้เลย</p>
+            <h4>Q7 — next-hop down แล้ว static route ยังอยู่ใน table ไหม</h4>
+            <p>ต้องแยกกรณี: (1) <strong>interface ฝั่งเราที่ใช้ไปถึง next-hop down</strong> (ถูก shutdown / สายหลุด) → connected route ของ subnet นั้นหายจาก RIB → next-hop resolve ไม่ได้ → static route <strong>ถูกถอนออก</strong>จาก routing table (2) <strong>อุปกรณ์ปลายทางดับแต่ลิงก์ฝั่งเรายัง up</strong> (เช่น ต่อผ่าน switch กลาง) → connected route ยังอยู่ next-hop ยัง resolve ได้ → static route <strong>ยังค้างอยู่</strong>ทั้งที่ส่งจริงไม่ถึง กลายเป็น blackhole เงียบ ๆ — คำตอบระดับดีมากจะพ่วงว่า งานจริงแก้ด้วย IP SLA + track object ผูกกับ static route หรือเปลี่ยนไปใช้ routing protocol ที่มี keepalive/hello ตรวจเพื่อนบ้าน</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>จุดที่คนมักผิด + เกณฑ์การให้คะแนนของ Reviewer</summary>
+          <div class="answer-body">
+            <h4>จุดที่คนมักผิด</h4>
+            <ul>
+              <li>จำรูป default route สลับกับ host route — <code>0.0.0.0 0.0.0.0</code> คือ default ส่วน mask <code>255.255.255.255</code> คือ host route (ตรงกับ trap 1 ใน Lab นี้)</li>
+              <li>เห็น <code>% Network not in table</code> จาก <code>show ip route 8.8.8.8</code> แล้วตกใจว่า route หาย ทั้งที่ default route ยังทำงานปกติ — คำสั่งนี้ไม่นับ gateway of last resort</li>
+              <li>ทดสอบด้วย ping จาก router แล้วปิดงาน โดยไม่เคยลอง source เป็นขา LAN หรือทดสอบจากเครื่องผู้ใช้จริง</li>
+              <li>ใช้ wildcard mask กับ <code>ip route</code> เพราะเพิ่งเรียน ACL/OSPF มา</li>
+              <li>copy ค่าจาก addressing table โดยไม่ตรวจทานกับ design (/30 ต้องเป็น 255.255.255.252 เสมอ)</li>
+              <li>ลืม <code>no shutdown</code> บน interface ของ router — โดยเฉพาะ G0/2 ของ R2 ที่มักถูกลืมเพราะเป็นขาที่สาม</li>
+              <li>แก้ static route โดยไม่ <code>no</code> บรรทัดเดิมออกก่อน ทำให้มี route เก่า-ใหม่ค้างซ้อนกันใน config</li>
+              <li>คิดแต่ขาไป ไม่เคยไล่ขากลับ — ความผิดพลาดเชิงวิธีคิดที่ Lab นี้ตั้งใจดักด้วย trap 3</li>
+            </ul>
+            <h4>เกณฑ์การให้คะแนน (เต็ม 100)</h4>
+            <div class="table-wrap">
+              <table class="data rubric">
+                <thead><tr><th>หัวข้อประเมิน</th><th>สิ่งที่ Reviewer ดู</th><th>คะแนน</th></tr></thead>
+                <tbody>
+                  <tr><td>Interface และ addressing</td><td>IP/mask ถูกต้องทุกขา ทุกอุปกรณ์ สถานะ up/up มี description — รวมถึงจับ mask ผิดจากตารางได้เอง</td><td>15</td></tr>
+                  <tr><td>Static / default route บน R1 และ R2</td><td>R1 มี default เส้นเดียวตาม design, R2 มี route เจาะจง + default ครบ ถูก next-hop, ไม่มี route ขยะ</td><td>20</td></tr>
+                  <tr><td>วิเคราะห์ return route ที่ R3</td><td>อธิบายได้เองว่าทำไม PC ping 8.8.8.8 ไม่ได้ทั้งที่ R1 ได้ และแก้ด้วย summary route อย่างมีเหตุผล</td><td>15</td></tr>
+                  <tr><td>Hidden traps</td><td>เจอครบ 3 จุด แก้ถูก และอธิบาย "อาการถ้าไม่แก้" ได้ทุกจุด</td><td>15</td></tr>
+                  <tr><td>แบบฝึก Longest Prefix Match</td><td>ตอบถูกทั้ง 3 ปลายทาง พร้อมเหตุผลเชิง prefix length ไม่ใช่การเดา</td><td>10</td></tr>
+                  <tr><td>Troubleshooting scenarios</td><td>ไล่ปัญหาเป็นลำดับ อ้างหลักฐานจากคำสั่ง show/ping ไม่ใช่สุ่มแก้</td><td>15</td></tr>
+                  <tr><td>Reviewer questions</td><td>ตอบปากเปล่าได้ตรงประเด็น โดยเฉพาะ Q3 (LPM มาก่อน AD) และ Q6 (source ของ ping)</td><td>10</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <div class="complete-bar">
+        <button class="btn primary" type="button" data-complete-btn>ทำ Lab นี้เสร็จแล้ว</button>
+        <span style="color:var(--text-soft);font-size:0.9rem;">ความคืบหน้าจะแสดงบนหน้าแรก (บันทึกไว้ในเบราว์เซอร์ของคุณ)</span>
+      </div>
+
+      <nav class="lab-pager">
+        <a class="prev" href="lab01.html">
+          <span class="pager-label">← Lab ก่อนหน้า</span>
+          <span class="pager-title">Lab 1 — Static Routing พื้นฐาน</span>
+        </a>
+        <a class="next" href="lab03.html">
+          <span class="pager-label">Lab ถัดไป →</span>
+          <span class="pager-title">Lab 3 — VLAN และ Trunking</span>
+        </a>
+      </nav>
+
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
+
+  <footer class="site-footer">
+    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern · สร้างตามแนวทาง Cisco NetAcad / SI Internal Training
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>
