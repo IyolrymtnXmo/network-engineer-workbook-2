@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ทฤษฎีพื้นฐาน | Network Engineer Workbook</title>
+  <meta name="description" content="ทฤษฎีพื้นฐานสำหรับ Network Engineer Intern">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body data-page="fundamentals">
+
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-badge">NW</span>
+      <span>Network Engineer Workbook</span>
+    </a>
+    <nav>
+      <a href="index.html">หน้าแรก</a>
+      <a href="fundamentals.html" class="active">ทฤษฎีพื้นฐาน</a>
+      <a href="commands.html">Command Reference</a>
+      <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
+    </nav>
+  </header>
+
+  <div class="layout single">
+    <main class="content">
+      <header class="lab-header">
+        <h1>ทฤษฎีพื้นฐาน (Fundamentals)</h1>
+        <p class="lab-sub">รวมทฤษฎีที่จำเป็นสำหรับ Network Engineer Intern ก่อนเริ่มทำ Lab หรือก่อนสัมภาษณ์</p>
+      </header>
+
+      <section class="section-card">
+        <h2>1. OSI Model & TCP/IP Model</h2>
+        <p>การเข้าใจ Layer เป็นหัวใจของการทำ Troubleshooting</p>
+        <ul>
+          <li><strong>Layer 1 (Physical)</strong>: สายแลน, พอร์ต (up/down), สัญญาณไฟฟ้า (Check: <code>show ip int brief</code>)</li>
+          <li><strong>Layer 2 (Data Link)</strong>: MAC Address, Switch, VLAN, ARP (Check: <code>show mac address-table</code>, <code>show vlan</code>)</li>
+          <li><strong>Layer 3 (Network)</strong>: IP Address, Router, Routing Table (Check: <code>show ip route</code>)</li>
+          <li><strong>Layer 4 (Transport)</strong>: TCP (เชื่อถือได้), UDP (รวดเร็ว), Port Numbers</li>
+          <li><strong>Layer 7 (Application)</strong>: HTTP, DNS, DHCP</li>
+        </ul>
+      </section>
+
+      <section class="section-card">
+        <h2>2. L2 Switching & MAC Address Table</h2>
+        <p>Switch ทำงานที่ Layer 2 ตัดสินใจส่งข้อมูลโดยดูจาก <strong>Destination MAC Address</strong></p>
+        <ul>
+          <li><strong>Learning</strong>: Switch เรียนรู้ Source MAC Address จาก Frame ที่เข้ามา และบันทึกลง MAC Table คู่กับ Port นั้น</li>
+          <li><strong>Forwarding</strong>: ถ้ารู้จัก Destination MAC ก็จะส่งออกไปเฉพาะ Port ปลายทาง</li>
+          <li><strong>Flooding</strong>: ถ้าไม่รู้จัก Destination MAC (Unknown Unicast) หรือเป็น Broadcast/Multicast จะส่งออกทุก Port ยกเว้น Port ที่รับมา</li>
+        </ul>
+      </section>
+
+      <section class="section-card">
+        <h2>3. VLAN & Trunking</h2>
+        <p>VLAN (Virtual LAN) คือการแบ่ง Broadcast Domain ออกเป็นส่วนๆ ภายใน Switch ตัวเดียวกัน</p>
+        <ul>
+          <li><strong>Access Port</strong>: พอร์ตที่อยู่ใน VLAN เดียว มักต่อกับ PC (Untagged traffic)</li>
+          <li><strong>Trunk Port</strong>: พอร์ตที่ส่งข้อมูลได้หลาย VLAN มักใช้เชื่อมระหว่าง Switch หรือ Router (Tagged traffic ด้วย 802.1Q)</li>
+          <li><strong>Native VLAN</strong>: VLAN ที่ส่งผ่าน Trunk Port โดยไม่แปะ Tag (ค่าเริ่มต้นคือ VLAN 1) ต้องตรงกันทั้งสองฝั่ง</li>
+        </ul>
+      </section>
+
+      <section class="section-card">
+        <h2>4. ARP (Address Resolution Protocol)</h2>
+        <p>โปรโตคอลที่ใช้หา MAC Address เมื่อรู้ IP Address ปลายทาง (ถ้าอยู่ใน Subnet เดียวกัน) หรือหา MAC ของ Gateway (ถ้าอยู่คนละ Subnet)</p>
+        <ul>
+          <li><strong>ARP Request</strong>: ส่งเป็น Broadcast (FF:FF:FF:FF:FF:FF) "ใครคือ IP นี้ ช่วยบอก MAC Address มาหน่อย"</li>
+          <li><strong>ARP Reply</strong>: ส่งกลับเป็น Unicast "ฉันเอง นี่คือ MAC Address ของฉัน"</li>
+        </ul>
+      </section>
+
+      <section class="section-card">
+        <h2>5. Routing Table & Longest Prefix Match</h2>
+        <p>Router ทำงานที่ Layer 3 ตัดสินใจส่งข้อมูลโดยดูจาก <strong>Destination IP Address</strong> เทียบกับ Routing Table</p>
+        <ul>
+          <li><strong>Longest Prefix Match (LPM)</strong>: กฎข้อแรกของการ Routing! Router จะเลือกเส้นทางที่มี Subnet Mask ยาวที่สุด (เจาะจงที่สุด) เสมอ เช่น ปลายทาง 10.1.1.5 จะเลือก /24 ก่อน /16</li>
+          <li><strong>Administrative Distance (AD)</strong>: ความน่าเชื่อถือของ Source (Connected=0, Static=1, OSPF=110) ใช้ตัดสินเมื่อได้เส้นทางจากหลาย Protocol</li>
+          <li><strong>Metric</strong>: ระยะทางหรือต้นทุน ใช้ตัดสินเมื่อได้เส้นทางจาก Protocol เดียวกันแต่มีหลายทาง</li>
+        </ul>
+      </section>
+
+      <section class="section-card">
+        <h2>6. วิธีคิด Troubleshooting สไตล์ Engineer</h2>
+        <p>เวลาเจอปัญหา "Ping ไม่ได้" ห้ามเดามั่ว ให้ไล่ตรวจทีละ Layer ตามแนวทาง <strong>Divide and Conquer</strong> หรือ <strong>Bottom-Up</strong></p>
+        <ol>
+          <li>เช็ค Layer 1: สายเสียบแน่นไหม? พอร์ตสถานะ <code>up/up</code> หรือเปล่า?</li>
+          <li>เช็ค Layer 2: อยู่ถูก VLAN ไหม? Trunk อนุญาต VLAN นี้ไหม? ทราบ MAC Address (ARP) ไหม?</li>
+          <li>เช็ค Layer 3 ขาไป: เครื่องต้นทางตั้ง Gateway ถูกไหม? Router มี Route ไปปลายทางไหม?</li>
+          <li>เช็ค Layer 3 ขากลับ: เครื่องปลายทางมี Gateway หรือไม่? Router ฝั่งปลายทางมี <strong>Return Route</strong> กลับมาหาเครื่องต้นทางหรือไม่? (สำคัญมาก คนมักลืมขากลับ)</li>
+        </ol>
+      </section>
+
+    </main>
+  </div>
+  <footer class="site-footer">
+    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern
+  </footer>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

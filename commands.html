@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Reference | Network Engineer Workbook</title>
+  <meta name="description" content="คู่มือคำสั่ง Cisco IOS ที่ใช้บ่อย">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body data-page="commands">
+
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-badge">NW</span>
+      <span>Network Engineer Workbook</span>
+    </a>
+    <nav>
+      <a href="index.html">หน้าแรก</a>
+      <a href="fundamentals.html">ทฤษฎีพื้นฐาน</a>
+      <a href="commands.html" class="active">Command Reference</a>
+      <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
+    </nav>
+  </header>
+
+  <div class="layout single">
+    <main class="content">
+      <header class="lab-header">
+        <h1>Command Reference</h1>
+        <p class="lab-sub">คู่มือคำสั่ง Cisco IOS ที่ใช้งานบ่อย พร้อมคำอธิบายและจุดสังเกต (Red Flags)</p>
+      </header>
+
+      <section class="section-card">
+        <h2>1. Show Commands (สำหรับตรวจสอบและ Troubleshooting)</h2>
+        
+        <div class="cli">
+          <div class="cli-title">show ip interface brief</div>
+<pre>Router# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0     192.168.1.1     YES manual up                    up
+GigabitEthernet0/1     unassigned      YES unset  administratively down down</pre>
+        </div>
+        <p><strong>ใช้ดูอะไร:</strong> ดูภาพรวมของ Interface, IP Address และสถานะ Layer 1 (Status) / Layer 2 (Protocol)<br>
+        <strong>Red Flag:</strong> ถ้า Status เป็น <code>administratively down</code> แปลว่าลืม <code>no shutdown</code></p>
+
+        <div class="cli">
+          <div class="cli-title">show ip route</div>
+<pre>Router# show ip route
+Gateway of last resort is 10.0.0.1 to network 0.0.0.0
+
+C    192.168.1.0/24 is directly connected, GigabitEthernet0/0
+S    10.1.1.0/24 [1/0] via 192.168.1.2</pre>
+        </div>
+        <p><strong>ใช้ดูอะไร:</strong> ดู Routing Table ทั้งหมด (เส้นทางไปเครือข่ายต่างๆ)<br>
+        <strong>Red Flag:</strong> ถ้า <code>Gateway of last resort is not set</code> แปลว่ายังไม่มี Default Route ที่ใช้ได้ หรือ Next-hop ของ Default Route เข้าถึงไม่ได้</p>
+
+        <div class="cli">
+          <div class="cli-title">show mac address-table</div>
+<pre>Switch# show mac address-table
+          Mac Address Table
+-------------------------------------------
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+   1    0011.2233.4455    DYNAMIC     Fa0/1</pre>
+        </div>
+        <p><strong>ใช้ดูอะไร:</strong> ตารางเก็บ MAC Address ของ Switch ว่าเรียนรู้ MAC มาจากพอร์ตไหน<br>
+        <strong>Red Flag:</strong> ถ้าพอร์ตที่ควรจะมี MAC Address กลับว่างเปล่า อาจแสดงว่า Layer 1 มีปัญหา หรืออุปกรณ์ปลายทางยังไม่เคยส่ง Traffic เข้ามา</p>
+
+        <div class="cli">
+          <div class="cli-title">show vlan brief</div>
+<pre>Switch# show vlan brief
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2
+10   HR_VLAN                          active    Fa0/3
+20   IT_VLAN                          active    Fa0/4</pre>
+        </div>
+        <p><strong>ใช้ดูอะไร:</strong> ตรวจสอบว่าพอร์ต Access ถูกกำหนดให้อยู่ใน VLAN ที่ถูกต้องหรือไม่</p>
+
+        <div class="cli">
+          <div class="cli-title">show interfaces trunk</div>
+<pre>Switch# show interfaces trunk
+Port        Mode             Encapsulation  Status        Native vlan
+Fa0/24      on               802.1q         trunking      1</pre>
+        </div>
+        <p><strong>ใช้ดูอะไร:</strong> ดูว่าพอร์ตไหนเป็น Trunk และอนุญาต VLAN อะไรให้ผ่านบ้าง</p>
+      </section>
+
+      <section class="section-card">
+        <h2>2. Configuration Commands (สำหรับตั้งค่า)</h2>
+
+        <div class="cli">
+          <div class="cli-title">ตั้งค่า IP Address ให้ Interface</div>
+<pre>Router(config)# interface GigabitEthernet 0/0
+Router(config-if)# description LAN to Switch1
+Router(config-if)# ip address 192.168.1.1 255.255.255.0
+Router(config-if)# no shutdown</pre>
+        </div>
+
+        <div class="cli">
+          <div class="cli-title">สร้างและกำหนด VLAN ให้พอร์ต Access</div>
+<pre>Switch(config)# vlan 10
+Switch(config-vlan)# name HR
+Switch(config-vlan)# exit
+Switch(config)# interface FastEthernet 0/1
+Switch(config-if)# switchport mode access
+Switch(config-if)# switchport access vlan 10</pre>
+        </div>
+
+        <div class="cli">
+          <div class="cli-title">ตั้งค่าพอร์ต Trunk</div>
+<pre>Switch(config)# interface GigabitEthernet 0/1
+Switch(config-if)# switchport trunk encapsulation dot1q  <span class="c">! (จำเป็นบนบางรุ่นที่เป็น L3 Switch)</span>
+Switch(config-if)# switchport mode trunk
+Switch(config-if)# switchport trunk allowed vlan 10,20</pre>
+        </div>
+
+        <div class="cli">
+          <div class="cli-title">ตั้งค่า Static Route</div>
+<pre>Router(config)# ip route [Destination_Network] [Subnet_Mask] [Next_Hop_IP]
+Router(config)# ip route 10.1.1.0 255.255.255.0 192.168.1.2</pre>
+        </div>
+
+        <div class="cli">
+          <div class="cli-title">ตั้งค่า Default Route</div>
+<pre>Router(config)# ip route 0.0.0.0 0.0.0.0 192.168.1.254</pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern
+  </footer>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

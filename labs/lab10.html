@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     TEMPLATE for lab pages (labs/labXX.html).
+     Content authors: keep ALL section ids, classes and order.
+     Replace placeholder text marked with - with real Thai
+     content. Cisco commands stay in English.
+     ============================================================ -->
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab 10 — Final Assessment — ออกแบบ ติดตั้ง และกู้ระบบ | Network Engineer Workbook</title>
+  <meta name="description" content="ข้อสอบรวบยอดจับเวลา: ออกแบบ VLSM, config ทั้งเครือข่าย">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body data-page="lab10">
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-badge">NW</span>
+      <span>Network Engineer Workbook</span>
+    </a>
+    <nav>
+      <a href="../index.html">หน้าแรก</a>
+      <a href="../fundamentals.html">ทฤษฎีพื้นฐาน</a>
+      <a href="../commands.html">Command Reference</a>
+      <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="btn toc-mobile-toggle" type="button">☰ สารบัญของ Lab นี้</button>
+      <nav class="toc">
+        <div class="toc-title">เนื้อหาใน Lab นี้</div>
+        <a href="#objectives"><span class="toc-num">1</span> Learning Objectives</a>
+        <a href="#topology"><span class="toc-num">2</span> Network Topology</a>
+        <a href="#addressing"><span class="toc-num">3</span> Addressing Table</a>
+        <a href="#scenario"><span class="toc-num">4</span> Lab Guide</a>
+        <a href="#tasks"><span class="toc-num">5</span> Configuration Tasks</a>
+        <a href="#verification"><span class="toc-num">6</span> Verification</a>
+        <a href="#troubleshooting"><span class="toc-num">7</span> Troubleshooting</a>
+        <a href="#packetflow"><span class="toc-num">8</span> Packet Flow</a>
+        <a href="#reviewer"><span class="toc-num">9</span> Reviewer Questions</a>
+        <a href="#traps"><span class="toc-num">10</span> Hidden Traps</a>
+        <a href="#answerkey"><span class="toc-num">11</span> Answer Key</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+
+      <header class="lab-header">
+        <div class="lab-kicker">Lab 10 / 10</div>
+        <h1>Final Assessment — ออกแบบ ติดตั้ง และกู้ระบบ</h1>
+        <p class="lab-sub">ข้อสอบรวบยอดจับเวลา: ออกแบบ VLSM, config ทั้งเครือข่าย</p>
+        <div class="badges">
+          <!-- level-exam | level-mid | level-hard | level-exam -->
+          <span class="badge level-exam">ระดับ: ข้อสอบรวบยอด</span>
+          <span class="badge time">⏱ ใช้เวลาประมาณ 150 นาที</span>
+          <span class="badge topic">Final Assessment</span>
+        </div>
+      </header>
+
+      <!-- ===== 1. Learning Objectives ===== -->
+      <section id="objectives" class="section-card">
+        <h2><span class="section-num">1</span> Learning Objectives</h2>
+        <p class="section-intro">ใน Lab นี้ เราจะมาฝึกปฏิบัติและทำความเข้าใจเกี่ยวกับ Final Assessment</p>
+        <ul>
+          <li>ประเมินความรู้และความสามารถทั้งหมดที่ได้เรียนมา</li>
+        </ul>
+        <!-- optional callout: ทำไมหัวข้อนี้สำคัญกับงานจริง -->
+        <div class="callout info">
+          <span class="co-icon">💼</span>
+          <div class="co-body">
+            <span class="co-title">มุมมองจากงานจริง</span>
+            เรื่องนี้เป็นพื้นฐานสำคัญที่ Network Engineer ต้องสามารถทำได้คล่องแคล่วและเข้าใจลึกซึ้ง เพื่อแก้ไขปัญหาได้ตรงจุด
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 2. Network Topology ===== -->
+      <section id="topology" class="section-card">
+        <h2><span class="section-num">2</span> Network Topology</h2>
+        <div class="topology-box">
+<pre>
+  (Complex Topology with multiple branches, switches, and routers)
+</pre>
+        </div>
+        <h3>คำอธิบายการเชื่อมต่อ</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>จากอุปกรณ์</th><th>Interface</th><th>ไปยังอุปกรณ์</th><th>Interface</th><th>หมายเหตุ (VLAN / Subnet)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>HQ-R</td><td class="mono">G0/0</td><td>Branch-R</td><td class="mono">G0/0</td><td>-</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>อุปกรณ์เชื่อมต่อตามภาพ</p>
+      </section>
+
+      <!-- ===== 3. Addressing Table ===== -->
+      <section id="addressing" class="section-card">
+        <h2><span class="section-num">3</span> Addressing Table</h2>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>Device</th><th>Interface</th><th>IP Address</th><th>Subnet Mask</th><th>Default Gateway</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>HQ-R</td><td class="mono">G0/0</td><td class="mono">192.168.1.1</td><td class="mono">255.255.255.0</td><td class="mono">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- ถ้า lab นี้มี trap ซ่อนในตาราง ให้คงไว้ ห้ามบอกใบ้ตรงนี้ -->
+      </section>
+
+      <!-- ===== 4. Lab Guide (สถานการณ์) ===== -->
+      <section id="scenario" class="section-card">
+        <h2><span class="section-num">4</span> Lab Guide — สถานการณ์</h2>
+        <p>ได้รับ Requirement ให้ติดตั้งระบบใหม่ทั้งหมด และแก้ปัญหา Ticket เร่งด่วน</p>
+        <!-- ถ้ามี initial config ที่ให้มา (อาจมี trap ฝังอยู่) ใส่เป็น .cli block -->
+        <div class="cli">
+          <div class="cli-title">Initial Configuration — R1 (ให้มาแล้ว ห้ามลบ ให้ตรวจสอบและแก้ไขได้)</div>
+<pre>! Configuration เริ่มต้น</pre>
+        </div>
+      </section>
+
+      <!-- ===== 5. Configuration Tasks ===== -->
+      <section id="tasks" class="section-card">
+        <h2><span class="section-num">5</span> Configuration Tasks</h2>
+        <p class="section-intro">ทำตามโจทย์ทีละข้อ <strong>ยังไม่ต้องเปิดเฉลย</strong> — ติ๊กถูกเมื่อทำเสร็จ ระบบจะจำไว้ให้</p>
+        <ol class="task-list">
+          <li>
+            <input class="task-check" type="checkbox" data-task="t1" aria-label="ทำเสร็จแล้ว">
+            <span class="task-title">ออกแบบ VLSM, ตั้งค่าอุปกรณ์ 5 ตัว, และกู้ระบบจากความผิดพลาด</span>
+            <p>ทำตามโจทย์ให้สำเร็จ</p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ===== 6. Verification ===== -->
+      <section id="verification" class="section-card">
+        <h2><span class="section-num">6</span> Verification</h2>
+        <p class="section-intro">ใช้คำสั่ง Show ตรวจสอบให้แน่ใจ</p>
+        <div class="verify-grid">
+          <div class="verify-card">
+            <div class="vc-cmd">show ip route</div>
+            <p>ตรวจสอบ Routing Table</p>
+            <ul>
+              <li>ดูตัวอักษรด้านหน้าเพื่อบอกประเภท Route</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 7. Troubleshooting ===== -->
+      <section id="troubleshooting" class="section-card">
+        <h2><span class="section-num">7</span> Troubleshooting Scenarios</h2>
+        <p class="section-intro">{{เกริ่น: สถานการณ์เหล่านี้เจอจริงหน้างาน ฝึก "วิธีคิด" ก่อนดูเฉลย (เฉลยอยู่ Section 11)}}</p>
+        <div class="trouble-card">
+          <div class="tc-head">⚠ Scenario 10.1 — ระบบพังหลายจุดพร้อมกัน ต้องแยกให้ออกว่าจุดไหนคือปัญหาหลัก</div>
+          <div class="tc-body">
+            <dl>
+              <dt>อาการ</dt><dd>-</dd>
+              <dt>สิ่งที่ผู้ใช้พบ</dt><dd>Request timed out</dd>
+              <dt>วิธีคิด</dt><dd>ตรวจสอบ OSI ทีละชั้น</dd>
+              <dt>ขั้นตอนการตรวจสอบ</dt><dd><ol><li>-</li></ol></dd>
+              <dt>ลำดับการ Troubleshoot</dt><dd>L1 -> L2 -> L3</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 8. Packet Flow ===== -->
+      <section id="packetflow" class="section-card">
+        <h2><span class="section-num">8</span> Packet Flow</h2>
+        <p class="section-intro">วิเคราะห์เส้นทาง ICMP (Ping)</p>
+        <ol class="packet-flow">
+          <li>
+            <span class="pf-device">PC1</span>
+            <p>อุปกรณ์ตัดสินใจตามข้อมูลใน Table ของตัวเอง (เช่น Routing Table, MAC Table)</p>
+            <div class="pf-frame">SRC MAC: - | DST MAC: - | SRC IP: - | DST IP: -</div>
+          </li>
+        </ol>
+        <!-- optional: callout สรุป insight สำคัญ เช่น MAC เปลี่ยนทุก hop แต่ IP ไม่เปลี่ยน -->
+      </section>
+
+      <!-- ===== 9. Reviewer Questions ===== -->
+      <section id="reviewer" class="section-card">
+        <h2><span class="section-num">9</span> Reviewer Questions</h2>
+        <p class="section-intro">คำถามแบบที่ Senior / Reviewer ในบริษัท SI ถามจริง ลองตอบปากเปล่าก่อนดูแนวคำตอบใน Answer Key</p>
+        <div class="reviewer-q">
+          <div class="rq-label">Q1</div>
+          <div class="rq-q">อธิบายการทำงานของระบบนี้ให้ฟังตั้งแต่ PC1 ส่งข้อมูลหา PC2</div>
+          <div class="rq-hint">💡 แนวคิด: นึกถึงความแตกต่างของการทำงานของแต่ละอุปกรณ์</div>
+        </div>
+      </section>
+
+      <!-- ===== 10. Hidden Traps ===== -->
+      <section id="traps" class="section-card">
+        <h2><span class="section-num">10</span> Hidden Traps</h2>
+        <div class="trap-banner">
+          <span class="tb-icon">🪤</span>
+          <div>
+            <p style="margin:0 0 6px;"><strong>Lab นี้มีจุดผิดซ่อนอยู่ <span class="trap-count">10 จุด</span></strong></p>
+            <p style="margin:0;">จุดผิดซ่อนอยู่ในตาราง Configuration ให้ค้นหาและแก้ไข</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 11. Answer Key ===== -->
+      <section id="answerkey" class="section-card answer-zone">
+        <h2><span class="section-num">11</span> Answer Key — เฉลยละเอียด</h2>
+        <div class="answer-warning">
+          🛑 <strong>หยุดก่อน!</strong> เปิดเฉลยเฉพาะเมื่อทำโจทย์ครบและตรวจสอบด้วยตัวเองแล้วเท่านั้น
+          การเปิดเฉลยเร็วเกินไปคือสาเหตุอันดับหนึ่งที่ทำให้ตอบคำถาม reviewer ไม่ได้
+        </div>
+
+        <details class="answer">
+          <summary>เฉลย Configuration ที่ถูกต้อง (ทีละอุปกรณ์)</summary>
+          <div class="answer-body">
+            <h4>HQ-R</h4>
+            <div class="cli">
+              <div class="cli-title">R1 — configuration</div>
+<pre><span class="c">! ตัวอย่างเฉลย</span>
+interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shut</pre>
+            </div>
+            <p><strong>เหตุผล:</strong> เพื่อให้ตรงตาม Requirement</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>ผลลัพธ์ที่ควรได้ (Expected Output)</summary>
+          <div class="answer-body">
+            <div class="cli">
+              <div class="cli-title">R1# show ip route (ตัวอย่างผลลัพธ์)</div>
+<pre>S 10.0.0.0/8 via 192.168.1.254</pre>
+            </div>
+            <p>เห็น Route ปลายทางครบถ้วน</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>วิธีคิดและเหตุผล (Engineer's Reasoning)</summary>
+          <div class="answer-body">
+            การแก้ปัญหาต้องเริ่มจากล่างขึ้นบนเสมอ
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>เฉลย Troubleshooting Scenarios</summary>
+          <div class="answer-body">
+            <h4>Scenario 7.1 — ปัญหาตัวอย่าง</h4>
+            เกิดจากการตั้งค่าผิด
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>เฉลย Hidden Traps (10 จุด)</summary>
+          <div class="answer-body">
+            <ol>
+              <li><strong>Trap 1 — ตาราง Configuration:</strong> IP Address ไม่ตรงกัน</li>
+            </ol>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>แนวคำตอบ Reviewer Questions</summary>
+          <div class="answer-body">
+            <h4>Q1 — อธิบายการทำงานของระบบนี้ให้ฟังตั้งแต่ PC1 ส่งข้อมูลหา PC2</h4>
+            <p>เข้าใจหลักการทำงานของอุปกรณ์ในแต่ละ Layer</p>
+          </div>
+        </details>
+
+        <details class="answer">
+          <summary>จุดที่คนมักผิด + เกณฑ์การให้คะแนนของ Reviewer</summary>
+          <div class="answer-body">
+            <h4>จุดที่คนมักผิด</h4>
+            <ul><li>-</li></ul>
+            <h4>เกณฑ์การให้คะแนน (เต็ม 100)</h4>
+            <div class="table-wrap">
+              <table class="data rubric">
+                <thead><tr><th>หัวข้อประเมิน</th><th>สิ่งที่ Reviewer ดู</th><th>คะแนน</th></tr></thead>
+                <tbody>
+                  <tr><td>-</td><td>-</td><td>20</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <div class="complete-bar">
+        <button class="btn primary" type="button" data-complete-btn>ทำ Lab นี้เสร็จแล้ว</button>
+        <span style="color:var(--text-soft);font-size:0.9rem;">ความคืบหน้าจะแสดงบนหน้าแรก (บันทึกไว้ในเบราว์เซอร์ของคุณ)</span>
+      </div>
+
+      <nav class="lab-pager">
+        <a class="prev" href="lab09.html">
+          <span class="pager-label">← Lab ก่อนหน้า</span>
+          <span class="pager-title">Lab 9</span>
+        </a>
+        <a class="next" href="lab11.html">
+          <span class="pager-label">Lab ถัดไป →</span>
+          <span class="pager-title">Lab 11</span>
+        </a>
+      </nav>
+
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
+
+  <footer class="site-footer">
+    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern · สร้างตามแนวทาง Cisco NetAcad / SI Internal Training
+  </footer>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>
