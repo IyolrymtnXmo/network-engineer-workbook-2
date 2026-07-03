@@ -34,7 +34,9 @@ jobs:
       - name: Check required files exist
         run: |
           set -e
-          for f in index.html fundamentals.html commands.html assets/css/style.css assets/js/main.js; do
+          for f in index.html workbook.html fundamentals.html commands.html \
+                   assets/css/style.css assets/css/interactive.css \
+                   assets/js/main.js assets/js/packet-journey.js; do
             test -f "$f" || { echo "::error::missing $f"; exit 1; }
           done
           for i in 01 02 03 04 05 06 07 08 09 10; do

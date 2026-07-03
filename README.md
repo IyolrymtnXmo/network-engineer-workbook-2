@@ -9,6 +9,17 @@
 
 ## มีอะไรอยู่ในนี้
 
+### 📦 บทเรียน Interactive: "การเดินทางของ Packet" (หน้าแรก)
+
+หน้าเริ่มต้นของเว็บเป็น **สื่อการสอนแบบโต้ตอบ** ที่พาเดินตาม packet ทีละก้าว
+จาก PC-A (VLAN 10) ping ไปหา PC-B (VLAN 20) ผ่าน Router-on-a-Stick —
+ร้อยทุกแนวคิดหลักของ workbook (subnet decision, ARP, Ethernet frame, VLAN/Trunk 802.1Q,
+MAC table, Routing table, **Longest Prefix Match**, Layer 2 vs Layer 3) เข้าเป็นภาพเดียว
+พร้อมแอนิเมชันเดินหน้า/ถอยหลัง, Frame Inspector สด, และ widget ให้ลองเล่น
+(เครื่องคิดเลข "ในวง/ข้ามวง" และ Longest Prefix Match)
+
+### 🧪 Workbook 10 Labs
+
 ทุก Lab ประกอบด้วย 11 ส่วนตามแนวทางเอกสารอบรมจริง:
 Learning Objectives · Network Topology (ASCII) · Addressing Table · Lab Guide ·
 Configuration Tasks · Verification · Troubleshooting · Packet Flow ·
@@ -59,18 +70,21 @@ python3 -m http.server 8000
 ## โครงสร้างโปรเจกต์
 
 ```
-├── index.html                  # หน้าแรก: ภาพรวม, วิธีใช้, ความคืบหน้า, รายการ lab
-├── fundamentals.html           # ทฤษฎีพื้นฐานทั้งหมด
-├── commands.html               # คู่มือคำสั่ง Cisco IOS
+├── index.html                   # หน้าแรก (default): บทเรียน Interactive "การเดินทางของ Packet"
+├── workbook.html                # หน้ารวม Labs: ภาพรวม, วิธีใช้, ความคืบหน้า, รายการ lab
+├── fundamentals.html            # ทฤษฎีพื้นฐานทั้งหมด
+├── commands.html                # คู่มือคำสั่ง Cisco IOS
 ├── labs/
-│   ├── lab01.html … lab10.html # Lab ทั้ง 10 (โครงสร้าง 11 section ต่อ lab)
+│   ├── lab01.html … lab10.html  # Lab ทั้ง 10 (โครงสร้าง 11 section ต่อ lab)
 ├── assets/
-│   ├── css/style.css           # design system ทั้งเว็บ (ธีมสว่าง/มืด, print)
-│   └── js/main.js              # TOC scroll-spy, เฉลยแบบล็อก, ระบบความคืบหน้า
-├── templates/lab-template.html # โครงสำหรับเขียน lab เพิ่มในอนาคต
-├── .github/workflows/deploy.yml# CI/CD: validate HTML/ลิงก์ + deploy GitHub Pages
-├── DEPLOYMENT.md               # คู่มือ deploy + แก้ปัญหา (ภาษาไทย)
-└── Context_prompt.md           # requirement ต้นทางของโปรเจกต์
+│   ├── css/style.css            # design system ทั้งเว็บ (ธีมสว่าง/มืด, print)
+│   ├── css/interactive.css      # สไตล์เฉพาะหน้าบทเรียน Interactive
+│   ├── js/main.js               # TOC scroll-spy, เฉลยแบบล็อก, ระบบความคืบหน้า, ธีม
+│   └── js/packet-journey.js     # เอนจินแอนิเมชัน packet + widget (subnet calc, LPM)
+├── templates/lab-template.html  # โครงสำหรับเขียน lab เพิ่มในอนาคต
+├── .github/workflows/deploy.yml # CI/CD: validate HTML/ลิงก์ + deploy GitHub Pages
+├── DEPLOYMENT.md                # คู่มือ deploy + แก้ปัญหา (ภาษาไทย)
+└── Context_prompt.md            # requirement ต้นทางของโปรเจกต์
 ```
 
 ## การมีส่วนร่วม / นำไปใช้ต่อ

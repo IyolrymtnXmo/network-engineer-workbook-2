@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Labs ทั้งหมด | Network Engineer Workbook</title>
+  <meta name="description" content="Workbook ฝึกปฏิบัติสไตล์ Cisco NetAcad ภาษาไทย สำหรับ Network / Security Engineer Intern — Static Routing, VLAN, Router-on-a-Stick, Inter-VLAN Routing, ARP, Packet Flow และ Troubleshooting ครบ 10 Labs พร้อมเฉลยละเอียด">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body data-page="index">
+
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand-badge">NW</span>
+      <span>Network Engineer Workbook</span>
+    </a>
+    <nav>
+      <a href="index.html">บทเรียน Interactive</a>
+      <a href="workbook.html" class="active">Labs</a>
+      <a href="fundamentals.html">ทฤษฎีพื้นฐาน</a>
+      <a href="commands.html">Command Reference</a>
+      <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
+    </nav>
+  </header>
+
+  <div class="layout single">
+    <main class="content">
+
+      <section class="hero">
+        <div class="hero-kicker">Cisco-style Internal Training · System Integrator</div>
+        <h1>Network Engineer Workbook</h1>
+        <p>
+          Workbook ฝึกปฏิบัติภาษาไทยสไตล์ Cisco NetAcad / เอกสารอบรมภายในบริษัท SI
+          สำหรับเด็กฝึกงานสาย Network / Security Engineer —
+          เน้น <strong>การคิดแบบ Engineer</strong> ไม่ใช่การท่องจำคำสั่ง
+        </p>
+        <p>
+          ทุก Lab มี Topology, Addressing Table, โจทย์, Verification, Troubleshooting, Packet Flow,
+          คำถามจาก Reviewer, จุดผิดที่ซ่อนไว้เหมือนข้อสอบจริง และเฉลยละเอียดแยกจากโจทย์
+        </p>
+        <div class="hero-badges">
+          <span class="badge">Static Routing</span>
+          <span class="badge">VLAN &amp; Trunk</span>
+          <span class="badge">Router-on-a-Stick</span>
+          <span class="badge">Inter-VLAN Routing</span>
+          <span class="badge">ARP</span>
+          <span class="badge">Packet Flow</span>
+          <span class="badge">Longest Prefix Match</span>
+          <span class="badge">Troubleshooting</span>
+        </div>
+      </section>
+
+      <div class="callout info">
+        <span class="co-icon">📦</span>
+        <div class="co-body">
+          <span class="co-title">เพิ่งเริ่มต้น? เริ่มที่บทเรียน Interactive ก่อน</span>
+          ลองดู <a href="index.html">“การเดินทางของ Packet”</a> — บทเรียนแบบโต้ตอบที่ร้อยทุกหัวข้อในเล่มนี้ (ARP, VLAN, Routing, LPM)
+          เข้าเป็นภาพเดียวก่อนลงมือทำ Lab
+        </div>
+      </div>
+
+      <section class="progress-panel">
+        <h2>📈 ความคืบหน้าของคุณ</h2>
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <p class="progress-text">ทำเสร็จแล้ว 0 จาก 10 Labs (0%)</p>
+      </section>
+
+      <h2 class="section-title">🧭 วิธีใช้ Workbook นี้ให้ได้ผลจริง</h2>
+      <section class="section-card">
+        <ol class="howto-steps">
+          <li>
+            <span class="hs-num">1</span>
+            <div><strong>ทวนทฤษฎีก่อนเริ่ม</strong> — เปิด <a href="fundamentals.html">ทฤษฎีพื้นฐาน</a> อ่านหัวข้อที่เกี่ยวกับ Lab ที่จะทำ ไม่ต้องอ่านรวดเดียวจบ</div>
+          </li>
+          <li>
+            <span class="hs-num">2</span>
+            <div><strong>ทำ Lab ตามลำดับ 1 → 10</strong> — ความยากถูกออกแบบให้ไต่ระดับ และ Lab หลังต่อยอดจาก Lab ก่อนหน้า สร้าง Lab ใน Packet Tracer / GNS3 / EVE-NG ตาม Topology ที่ให้</div>
+          </li>
+          <li>
+            <span class="hs-num">3</span>
+            <div><strong>ระวังจุดผิดที่ซ่อนไว้</strong> — ทุก Lab มี Hidden Traps ฝังอยู่ในโจทย์เหมือนข้อสอบจริง อ่านทุกตาราง ทุก config ที่ให้มาอย่างมีข้อสงสัยเสมอ</div>
+          </li>
+          <li>
+            <span class="hs-num">4</span>
+            <div><strong>ห้ามเปิดเฉลยจนกว่าจะตรวจสอบเองครบ</strong> — ใช้คำสั่งใน Verification ตรวจงานตัวเองก่อน แล้วค่อยเทียบกับ Answer Key ที่ล็อกไว้ท้าย Lab</div>
+          </li>
+          <li>
+            <span class="hs-num">5</span>
+            <div><strong>ซ้อมตอบ Reviewer Questions ปากเปล่า</strong> — คำถามในแต่ละ Lab คือคำถามที่พี่ Reviewer ในบริษัท SI ถามจริง ตอบให้ได้โดยไม่เปิดเอกสาร</div>
+          </li>
+          <li>
+            <span class="hs-num">6</span>
+            <div><strong>ปิดท้ายด้วย Final Assessment</strong> — Lab 10 คือข้อสอบรวบยอดจับเวลา 150 นาที พร้อมเกณฑ์ให้คะแนนแบบเดียวกับการ Review จริง</div>
+          </li>
+        </ol>
+      </section>
+
+      <h2 class="section-title">🧪 Labs ทั้งหมด</h2>
+      <div class="lab-grid">
+        <a class="lab-card" data-lab="lab01" href="labs/lab01.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 01</span>
+          <span class="lc-title">Static Routing พื้นฐาน</span>
+          <span class="lc-desc">เชื่อมสองสาขาด้วย static route — เข้าใจ routing table, next-hop และเหตุผลที่ต้องมี route ครบทั้งสองทิศ</span>
+          <span class="lc-foot">
+            <span class="badge level-basic">พื้นฐาน</span>
+            <span class="badge time">⏱ 60 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab02" href="labs/lab02.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 02</span>
+          <span class="lc-title">Static + Default Route และ Longest Prefix Match</span>
+          <span class="lc-desc">สามไซต์ + ISP จำลอง — default route, summary route และกติกาการเลือกเส้นทางของ router</span>
+          <span class="lc-foot">
+            <span class="badge level-basic">พื้นฐาน–กลาง</span>
+            <span class="badge time">⏱ 75 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab03" href="labs/lab03.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 03</span>
+          <span class="lc-title">VLAN และ Trunking</span>
+          <span class="lc-desc">แยกทราฟฟิก HR / IT ด้วย VLAN ข้ามสอง switch — access port, trunk 802.1Q และ native VLAN</span>
+          <span class="lc-foot">
+            <span class="badge level-basic">พื้นฐาน</span>
+            <span class="badge time">⏱ 60 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab04" href="labs/lab04.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 04</span>
+          <span class="lc-title">Router-on-a-Stick</span>
+          <span class="lc-desc">ให้ VLAN คุยกันด้วย router พอร์ตเดียว — subinterface, encapsulation dot1Q และเส้นทาง frame แบบ hairpin</span>
+          <span class="lc-foot">
+            <span class="badge level-mid">กลาง</span>
+            <span class="badge time">⏱ 75 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab05" href="labs/lab05.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 05</span>
+          <span class="lc-title">Inter-VLAN Routing ด้วย Layer 3 Switch (SVI)</span>
+          <span class="lc-desc">อัพเกรดจาก ROAS เป็น L3 switch — ip routing, SVI, routed port และการเลือกดีไซน์ในงานจริง</span>
+          <span class="lc-foot">
+            <span class="badge level-mid">กลาง</span>
+            <span class="badge time">⏱ 90 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab06" href="labs/lab06.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 06</span>
+          <span class="lc-title">ARP และ MAC Address Table เจาะลึก</span>
+          <span class="lc-desc">เห็น ARP กับตาทุกจังหวะ — ARP table vs MAC table, duplicate IP, mask ผิดแล้ว ARP เพี้ยนยังไง</span>
+          <span class="lc-foot">
+            <span class="badge level-mid">กลาง</span>
+            <span class="badge time">⏱ 75 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab07" href="labs/lab07.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 07</span>
+          <span class="lc-title">Layer 2 Troubleshooting</span>
+          <span class="lc-desc">เครือข่ายพังมาให้แล้ว 5 จุด — ไล่หาจาก ticket ผู้ใช้จริงด้วยลำดับการตรวจ L2 อย่างเป็นระบบ</span>
+          <span class="lc-foot">
+            <span class="badge level-hard">กลาง–สูง</span>
+            <span class="badge time">⏱ 90 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab08" href="labs/lab08.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 08</span>
+          <span class="lc-title">Layer 3 Troubleshooting</span>
+          <span class="lc-desc">route ผิด next-hop, ขากลับหาย, mask ทับซ้อน — ฝึกอ่าน traceroute และไล่ routing สองทิศทาง</span>
+          <span class="lc-foot">
+            <span class="badge level-hard">กลาง–สูง</span>
+            <span class="badge time">⏱ 90 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab09" href="labs/lab09.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 09</span>
+          <span class="lc-title">Mixed Troubleshooting (L1–L3)</span>
+          <span class="lc-desc">งาน change กลางคืนพัง 7 จุดคละทุกชั้น — divide &amp; conquer, follow-the-path และการปิดงานด้วย verification matrix</span>
+          <span class="lc-foot">
+            <span class="badge level-hard">สูง</span>
+            <span class="badge time">⏱ 120 นาที</span>
+          </span>
+        </a>
+        <a class="lab-card" data-lab="lab10" href="labs/lab10.html">
+          <span class="lc-check"></span>
+          <span class="lc-num">LAB 10</span>
+          <span class="lc-title">Final Assessment — ออกแบบ ติดตั้ง และกู้ระบบ</span>
+          <span class="lc-desc">ข้อสอบรวบยอดจับเวลา: ออกแบบ VLSM จาก requirement จริง, config ทั้งเครือข่าย, กู้ 2 ticket และจำลองสัมภาษณ์ 10 ข้อ</span>
+          <span class="lc-foot">
+            <span class="badge level-exam">ข้อสอบรวบยอด</span>
+            <span class="badge time">⏱ 150 นาที</span>
+          </span>
+        </a>
+      </div>
+
+      <h2 class="section-title">📚 เอกสารประกอบ</h2>
+      <div class="doc-grid">
+        <a class="doc-card" href="index.html">
+          <span class="dc-icon">📦</span>
+          <span>
+            <span class="dc-title">บทเรียน Interactive: การเดินทางของ Packet</span>
+            <span class="dc-desc">แอนิเมชันตามรอย packet ทีละก้าว ร้อย ARP, VLAN, Trunk, MAC table, Routing และ Longest Prefix Match เข้าเป็นภาพเดียว พร้อม widget ให้ลองเล่น</span>
+          </span>
+        </a>
+        <a class="doc-card" href="fundamentals.html">
+          <span class="dc-icon">🧠</span>
+          <span>
+            <span class="dc-title">ทฤษฎีพื้นฐาน</span>
+            <span class="dc-desc">OSI, L2 switching, VLAN, ARP, routing table, Longest Prefix Match, Packet Flow ฉบับสมบูรณ์ และวิธีคิด troubleshooting — อ่านทวนก่อนเจอ reviewer</span>
+          </span>
+        </a>
+        <a class="doc-card" href="commands.html">
+          <span class="dc-icon">⌨️</span>
+          <span>
+            <span class="dc-title">Command Reference</span>
+            <span class="dc-desc">คู่มือคำสั่ง Cisco IOS ทุกคำสั่งที่ใช้ใน workbook — syntax, ตัวอย่าง output, วิธีอ่าน และ red flags ที่ต้องสังเกต</span>
+          </span>
+        </a>
+      </div>
+
+      <h2 class="section-title">🛠 เครื่องมือที่แนะนำ</h2>
+      <section class="section-card">
+        <p>Workbook นี้ออกแบบให้ทำตามได้ในเครื่องมือจำลองเครือข่ายทั่วไป เลือกอย่างใดอย่างหนึ่ง:</p>
+        <ul>
+          <li><strong>Cisco Packet Tracer</strong> — ฟรีผ่าน Cisco NetAcad เหมาะที่สุดสำหรับผู้เริ่มต้น ทุก Lab ทำได้ครบ</li>
+          <li><strong>GNS3 / EVE-NG + IOSv</strong> — เหมือนอุปกรณ์จริงที่สุด เหมาะกับ Lab 7–10 ที่เน้น troubleshooting</li>
+          <li><strong>อุปกรณ์จริง</strong> — ถ้าที่ออฟฟิศมี switch/router ให้ยืม ยิ่งดี (ขออนุญาตพี่ในทีมก่อนเสมอ)</li>
+        </ul>
+        <div class="callout tip">
+          <span class="co-icon">💡</span>
+          <div class="co-body">
+            <span class="co-title">เคล็ดลับจากพี่ Reviewer</span>
+            สิ่งที่ทำให้ intern โดดเด่นไม่ใช่การ config เร็ว แต่คือการอธิบายได้ว่า
+            <strong>"packet เดินทางยังไง และทำไมถึง config แบบนี้"</strong> —
+            ทุกครั้งที่ทำ Lab เสร็จ ลองเล่า packet flow ให้ตัวเองฟังหนึ่งรอบ
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <button class="back-top" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
+
+  <footer class="site-footer">
+    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern · สร้างตามแนวทาง Cisco NetAcad / SI Internal Training
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
