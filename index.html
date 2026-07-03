@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Network Engineer Workbook — Cisco-style Workbook ภาษาไทย</title>
-  <meta name="description" content="Workbook ฝึกปฏิบัติสไตล์ Cisco NetAcad ภาษาไทย สำหรับ Network / Security Engineer Intern — Static Routing, VLAN, Router-on-a-Stick, Inter-VLAN Routing, ARP, Packet Flow และ Troubleshooting ครบ 10 Labs พร้อมเฉลยละเอียด">
+  <title>การเดินทางของ Packet — บทเรียน Interactive | Network Engineer Workbook</title>
+  <meta name="description" content="บทเรียน Interactive ภาษาไทย: ตามรอย packet จาก PC ต้นทางถึงปลายทางทีละขั้น — subnet decision, ARP, Ethernet frame, VLAN/Trunk, MAC table, Routing table, Longest Prefix Match และ Layer 2 vs Layer 3 พร้อมแอนิเมชันและ widget โต้ตอบได้">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+  <link rel="stylesheet" href="assets/css/interactive.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 </head>
-<body data-page="index">
+<body data-page="journey">
 
   <header class="topbar">
     <a class="brand" href="index.html">
@@ -19,7 +20,8 @@
       <span>Network Engineer Workbook</span>
     </a>
     <nav>
-      <a href="index.html" class="active">หน้าแรก</a>
+      <a href="index.html" class="active">บทเรียน Interactive</a>
+      <a href="workbook.html">Labs</a>
       <a href="fundamentals.html">ทฤษฎีพื้นฐาน</a>
       <a href="commands.html">Command Reference</a>
       <button class="theme-toggle" type="button" aria-label="สลับโหมดสว่าง/มืด">🌙</button>
@@ -29,206 +31,758 @@
   <div class="layout single">
     <main class="content">
 
+      <!-- ============================================================
+           INTRODUCTION
+           ============================================================ -->
       <section class="hero">
-        <div class="hero-kicker">Cisco-style Internal Training · System Integrator</div>
-        <h1>Network Engineer Workbook</h1>
+        <div class="hero-kicker">Interactive Lesson · Packet Walkthrough</div>
+        <h1>📦 การเดินทางของ Packet</h1>
         <p>
-          Workbook ฝึกปฏิบัติภาษาไทยสไตล์ Cisco NetAcad / เอกสารอบรมภายในบริษัท SI
-          สำหรับเด็กฝึกงานสาย Network / Security Engineer —
-          เน้น <strong>การคิดแบบ Engineer</strong> ไม่ใช่การท่องจำคำสั่ง
+          หนึ่ง <code style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">ping</code>
+          จาก PC เครื่องหนึ่งไปอีกเครื่อง เกิดอะไรขึ้นบ้าง? บทเรียนนี้จะ
+          <strong>พาเดินตาม packet ทีละก้าว</strong> ตั้งแต่ตัดสินใจปลายทาง ไปจนถึงมือผู้รับ
+          แล้วเชื่อมทุกหัวข้อสำคัญของ workbook — ARP, VLAN, Trunk, MAC Table, Routing และ Longest Prefix Match — เข้าเป็นภาพเดียว
         </p>
-        <p>
-          ทุก Lab มี Topology, Addressing Table, โจทย์, Verification, Troubleshooting, Packet Flow,
-          คำถามจาก Reviewer, จุดผิดที่ซ่อนไว้เหมือนข้อสอบจริง และเฉลยละเอียดแยกจากโจทย์
+        <p style="opacity:.9">
+          เรียนแบบ <strong>ลงมือกด</strong> ไม่ใช่แค่อ่าน: มีแอนิเมชันเดินหน้า/ถอยหลังได้ และ widget ให้ลองเล่นในแต่ละหัวข้อ
         </p>
         <div class="hero-badges">
-          <span class="badge">Static Routing</span>
-          <span class="badge">VLAN &amp; Trunk</span>
-          <span class="badge">Router-on-a-Stick</span>
-          <span class="badge">Inter-VLAN Routing</span>
+          <span class="badge">Layer 2 vs Layer 3</span>
           <span class="badge">ARP</span>
-          <span class="badge">Packet Flow</span>
+          <span class="badge">VLAN &amp; Trunk 802.1Q</span>
+          <span class="badge">MAC Table</span>
+          <span class="badge">Routing Table</span>
           <span class="badge">Longest Prefix Match</span>
-          <span class="badge">Troubleshooting</span>
         </div>
       </section>
 
-      <section class="progress-panel">
-        <h2>📈 ความคืบหน้าของคุณ</h2>
-        <div class="progress-track"><div class="progress-fill"></div></div>
-        <p class="progress-text">ทำเสร็จแล้ว 0 จาก 10 Labs (0%)</p>
-      </section>
-
-      <h2 class="section-title">🧭 วิธีใช้ Workbook นี้ให้ได้ผลจริง</h2>
-      <section class="section-card">
-        <ol class="howto-steps">
-          <li>
-            <span class="hs-num">1</span>
-            <div><strong>ทวนทฤษฎีก่อนเริ่ม</strong> — เปิด <a href="fundamentals.html">ทฤษฎีพื้นฐาน</a> อ่านหัวข้อที่เกี่ยวกับ Lab ที่จะทำ ไม่ต้องอ่านรวดเดียวจบ</div>
-          </li>
-          <li>
-            <span class="hs-num">2</span>
-            <div><strong>ทำ Lab ตามลำดับ 1 → 10</strong> — ความยากถูกออกแบบให้ไต่ระดับ และ Lab หลังต่อยอดจาก Lab ก่อนหน้า สร้าง Lab ใน Packet Tracer / GNS3 / EVE-NG ตาม Topology ที่ให้</div>
-          </li>
-          <li>
-            <span class="hs-num">3</span>
-            <div><strong>ระวังจุดผิดที่ซ่อนไว้</strong> — ทุก Lab มี Hidden Traps ฝังอยู่ในโจทย์เหมือนข้อสอบจริง อ่านทุกตาราง ทุก config ที่ให้มาอย่างมีข้อสงสัยเสมอ</div>
-          </li>
-          <li>
-            <span class="hs-num">4</span>
-            <div><strong>ห้ามเปิดเฉลยจนกว่าจะตรวจสอบเองครบ</strong> — ใช้คำสั่งใน Verification ตรวจงานตัวเองก่อน แล้วค่อยเทียบกับ Answer Key ที่ล็อกไว้ท้าย Lab</div>
-          </li>
-          <li>
-            <span class="hs-num">5</span>
-            <div><strong>ซ้อมตอบ Reviewer Questions ปากเปล่า</strong> — คำถามในแต่ละ Lab คือคำถามที่พี่ Reviewer ในบริษัท SI ถามจริง ตอบให้ได้โดยไม่เปิดเอกสาร</div>
-          </li>
-          <li>
-            <span class="hs-num">6</span>
-            <div><strong>ปิดท้ายด้วย Final Assessment</strong> — Lab 10 คือข้อสอบรวบยอดจับเวลา 150 นาที พร้อมเกณฑ์ให้คะแนนแบบเดียวกับการ Review จริง</div>
-          </li>
-        </ol>
-      </section>
-
-      <h2 class="section-title">🧪 Labs ทั้งหมด</h2>
-      <div class="lab-grid">
-        <a class="lab-card" data-lab="lab01" href="labs/lab01.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 01</span>
-          <span class="lc-title">Static Routing พื้นฐาน</span>
-          <span class="lc-desc">เชื่อมสองสาขาด้วย static route — เข้าใจ routing table, next-hop และเหตุผลที่ต้องมี route ครบทั้งสองทิศ</span>
-          <span class="lc-foot">
-            <span class="badge level-basic">พื้นฐาน</span>
-            <span class="badge time">⏱ 60 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab02" href="labs/lab02.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 02</span>
-          <span class="lc-title">Static + Default Route และ Longest Prefix Match</span>
-          <span class="lc-desc">สามไซต์ + ISP จำลอง — default route, summary route และกติกาการเลือกเส้นทางของ router</span>
-          <span class="lc-foot">
-            <span class="badge level-basic">พื้นฐาน–กลาง</span>
-            <span class="badge time">⏱ 75 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab03" href="labs/lab03.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 03</span>
-          <span class="lc-title">VLAN และ Trunking</span>
-          <span class="lc-desc">แยกทราฟฟิก HR / IT ด้วย VLAN ข้ามสอง switch — access port, trunk 802.1Q และ native VLAN</span>
-          <span class="lc-foot">
-            <span class="badge level-basic">พื้นฐาน</span>
-            <span class="badge time">⏱ 60 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab04" href="labs/lab04.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 04</span>
-          <span class="lc-title">Router-on-a-Stick</span>
-          <span class="lc-desc">ให้ VLAN คุยกันด้วย router พอร์ตเดียว — subinterface, encapsulation dot1Q และเส้นทาง frame แบบ hairpin</span>
-          <span class="lc-foot">
-            <span class="badge level-mid">กลาง</span>
-            <span class="badge time">⏱ 75 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab05" href="labs/lab05.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 05</span>
-          <span class="lc-title">Inter-VLAN Routing ด้วย Layer 3 Switch (SVI)</span>
-          <span class="lc-desc">อัพเกรดจาก ROAS เป็น L3 switch — ip routing, SVI, routed port และการเลือกดีไซน์ในงานจริง</span>
-          <span class="lc-foot">
-            <span class="badge level-mid">กลาง</span>
-            <span class="badge time">⏱ 90 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab06" href="labs/lab06.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 06</span>
-          <span class="lc-title">ARP และ MAC Address Table เจาะลึก</span>
-          <span class="lc-desc">เห็น ARP กับตาทุกจังหวะ — ARP table vs MAC table, duplicate IP, mask ผิดแล้ว ARP เพี้ยนยังไง</span>
-          <span class="lc-foot">
-            <span class="badge level-mid">กลาง</span>
-            <span class="badge time">⏱ 75 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab07" href="labs/lab07.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 07</span>
-          <span class="lc-title">Layer 2 Troubleshooting</span>
-          <span class="lc-desc">เครือข่ายพังมาให้แล้ว 5 จุด — ไล่หาจาก ticket ผู้ใช้จริงด้วยลำดับการตรวจ L2 อย่างเป็นระบบ</span>
-          <span class="lc-foot">
-            <span class="badge level-hard">กลาง–สูง</span>
-            <span class="badge time">⏱ 90 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab08" href="labs/lab08.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 08</span>
-          <span class="lc-title">Layer 3 Troubleshooting</span>
-          <span class="lc-desc">route ผิด next-hop, ขากลับหาย, mask ทับซ้อน — ฝึกอ่าน traceroute และไล่ routing สองทิศทาง</span>
-          <span class="lc-foot">
-            <span class="badge level-hard">กลาง–สูง</span>
-            <span class="badge time">⏱ 90 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab09" href="labs/lab09.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 09</span>
-          <span class="lc-title">Mixed Troubleshooting (L1–L3)</span>
-          <span class="lc-desc">งาน change กลางคืนพัง 7 จุดคละทุกชั้น — divide &amp; conquer, follow-the-path และการปิดงานด้วย verification matrix</span>
-          <span class="lc-foot">
-            <span class="badge level-hard">สูง</span>
-            <span class="badge time">⏱ 120 นาที</span>
-          </span>
-        </a>
-        <a class="lab-card" data-lab="lab10" href="labs/lab10.html">
-          <span class="lc-check"></span>
-          <span class="lc-num">LAB 10</span>
-          <span class="lc-title">Final Assessment — ออกแบบ ติดตั้ง และกู้ระบบ</span>
-          <span class="lc-desc">ข้อสอบรวบยอดจับเวลา: ออกแบบ VLSM จาก requirement จริง, config ทั้งเครือข่าย, กู้ 2 ticket และจำลองสัมภาษณ์ 10 ข้อ</span>
-          <span class="lc-foot">
-            <span class="badge level-exam">ข้อสอบรวบยอด</span>
-            <span class="badge time">⏱ 150 นาที</span>
-          </span>
-        </a>
+      <div class="callout info">
+        <span class="co-icon">🎯</span>
+        <div class="co-body">
+          <span class="co-title">อ่านจบแล้วคุณจะอธิบายได้ว่า</span>
+          ทำไม packet ต้องใช้ทั้ง MAC และ IP · MAC เปลี่ยนทุก hop แต่ IP อยู่ครบเส้นทางอย่างไร ·
+          Switch กับ Router ตัดสินใจต่างกันตรงไหน · และทำไม “ping ไม่ได้” ถึงมักซ่อนอยู่ที่ ARP, VLAN หรือ route ขากลับ
+        </div>
       </div>
 
-      <h2 class="section-title">📚 เอกสารประกอบ</h2>
-      <div class="doc-grid">
-        <a class="doc-card" href="fundamentals.html">
-          <span class="dc-icon">🧠</span>
-          <span>
-            <span class="dc-title">ทฤษฎีพื้นฐาน</span>
-            <span class="dc-desc">OSI, L2 switching, VLAN, ARP, routing table, Longest Prefix Match, Packet Flow ฉบับสมบูรณ์ และวิธีคิด troubleshooting — อ่านทวนก่อนเจอ reviewer</span>
-          </span>
-        </a>
-        <a class="doc-card" href="commands.html">
-          <span class="dc-icon">⌨️</span>
-          <span>
-            <span class="dc-title">Command Reference</span>
-            <span class="dc-desc">คู่มือคำสั่ง Cisco IOS ทุกคำสั่งที่ใช้ใน workbook — syntax, ตัวอย่าง output, วิธีอ่าน และ red flags ที่ต้องสังเกต</span>
-          </span>
-        </a>
-      </div>
+      <!-- ============================================================
+           CONCEPT OVERVIEW
+           ============================================================ -->
+      <p class="lesson-part">ส่วนที่ 1 · ปูพื้นก่อนออกเดินทาง</p>
+      <h2 class="big-step"><span class="bs-num">0</span> ตัวละครและ “สมุดจด” 3 เล่ม</h2>
 
-      <h2 class="section-title">🛠 เครื่องมือที่แนะนำ</h2>
       <section class="section-card">
-        <p>Workbook นี้ออกแบบให้ทำตามได้ในเครื่องมือจำลองเครือข่ายทั่วไป เลือกอย่างใดอย่างหนึ่ง:</p>
-        <ul>
-          <li><strong>Cisco Packet Tracer</strong> — ฟรีผ่าน Cisco NetAcad เหมาะที่สุดสำหรับผู้เริ่มต้น ทุก Lab ทำได้ครบ</li>
-          <li><strong>GNS3 / EVE-NG + IOSv</strong> — เหมือนอุปกรณ์จริงที่สุด เหมาะกับ Lab 7–10 ที่เน้น troubleshooting</li>
-          <li><strong>อุปกรณ์จริง</strong> — ถ้าที่ออฟฟิศมี switch/router ให้ยืม ยิ่งดี (ขออนุญาตพี่ในทีมก่อนเสมอ)</li>
-        </ul>
-        <div class="callout tip">
-          <span class="co-icon">💡</span>
+        <p>
+          ก่อนดู packet วิ่ง เรามารู้จักผู้เล่นในเรื่องก่อน แต่ละอุปกรณ์ทำงานคนละชั้น (Layer) และตัดสินใจด้วยข้อมูลคนละแบบ
+        </p>
+
+        <div class="cast-grid">
+          <div class="cast-card l3">
+            <div class="cc-emoji">💻</div>
+            <div class="cc-name">PC (Host)</div>
+            <div class="cc-role">ต้นทาง/ปลายทางของข้อมูล</div>
+            <div class="cc-meta">รู้จัก: IP + Subnet Mask + Gateway</div>
+          </div>
+          <div class="cast-card sw">
+            <div class="cc-emoji">🔀</div>
+            <div class="cc-name">Switch (Layer 2)</div>
+            <div class="cc-role">ส่ง frame ภายในวงเดียวกัน</div>
+            <div class="cc-meta">ตัดสินใจด้วย: MAC Address</div>
+          </div>
+          <div class="cast-card l2">
+            <div class="cc-emoji">🧭</div>
+            <div class="cc-name">Router (Layer 3)</div>
+            <div class="cc-role">พา packet ข้ามวง/ข้าม network</div>
+            <div class="cc-meta">ตัดสินใจด้วย: IP + Routing Table</div>
+          </div>
+        </div>
+
+        <h3>สมุดจด 3 เล่มที่อุปกรณ์ใช้ตัดสินใจ</h3>
+        <p>ทุกครั้งที่งง ให้ถามว่า “ตอนนี้อุปกรณ์กำลังเปิดสมุดเล่มไหน?”</p>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>ตาราง</th><th>อยู่ที่ไหน</th><th>จับคู่อะไร → อะไร</th><th>ใช้ตอน</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>ARP Table</strong></td>
+                <td>PC และ Router</td>
+                <td class="mono">IP → MAC</td>
+                <td>ก่อนประกอบ frame ต้องรู้ MAC ของ hop ถัดไป</td>
+              </tr>
+              <tr>
+                <td><strong>MAC Address Table</strong></td>
+                <td>Switch</td>
+                <td class="mono">MAC → Port</td>
+                <td>ตัดสินใจว่าจะส่ง frame ออกพอร์ตไหน</td>
+              </tr>
+              <tr>
+                <td><strong>Routing Table</strong></td>
+                <td>Router (และ L3 Switch)</td>
+                <td class="mono">Network → Next-hop/Interface</td>
+                <td>ตัดสินใจว่า packet ข้ามวงต้องไปทางไหน</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>หัวใจที่ต้องติดตัวไปทั้งบทเรียน: Layer 2 vs Layer 3</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>ประเด็น</th><th>Layer 2 (Ethernet / MAC)</th><th>Layer 3 (IP)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>ที่อยู่ที่ใช้</td><td class="mono">MAC Address</td><td class="mono">IP Address</td></tr>
+              <tr><td>ระยะการมองเห็น</td><td>hop ถัดไปเท่านั้น (วงเดียวกัน)</td><td>ปลายทางสุดท้าย (ทั้งเส้นทาง)</td></tr>
+              <tr><td>เปลี่ยนบ่อยแค่ไหน</td><td><strong style="color:var(--l2)">เปลี่ยนใหม่ทุก hop ที่ผ่าน Router</strong></td><td><strong style="color:var(--l3)">คงเดิม end-to-end</strong></td></tr>
+              <tr><td>อุปกรณ์หลักที่ดูแล</td><td>Switch</td><td>Router</td></tr>
+              <tr><td>เปรียบเป็น</td><td>ชื่อบ้านถัดไปที่ต้องแวะ</td><td>ที่อยู่ปลายทางบนซองจดหมาย</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout think">
+          <span class="co-icon">🧠</span>
           <div class="co-body">
-            <span class="co-title">เคล็ดลับจากพี่ Reviewer</span>
-            สิ่งที่ทำให้ intern โดดเด่นไม่ใช่การ config เร็ว แต่คือการอธิบายได้ว่า
-            <strong>"packet เดินทางยังไง และทำไมถึง config แบบนี้"</strong> —
-            ทุกครั้งที่ทำ Lab เสร็จ ลองเล่า packet flow ให้ตัวเองฟังหนึ่งรอบ
+            <span class="co-title">อุปมาให้เห็นภาพ</span>
+            คิดว่า <strong>IP คือที่อยู่ปลายทางบนซองจดหมาย</strong> (ไม่เปลี่ยนจนถึงมือผู้รับ) ส่วน
+            <strong>MAC คือ “ป้ายบอกเมืองถัดไป”</strong> ที่พนักงานไปรษณีย์แต่ละด่านเขียนทับใหม่เรื่อย ๆ
+            ซองเดิม—แต่เส้นทางส่งต่อเปลี่ยนป้ายทุกด่าน
           </div>
         </div>
       </section>
+
+      <!-- ============================================================
+           FLAGSHIP: INTERACTIVE JOURNEY
+           ============================================================ -->
+      <p class="lesson-part">ส่วนที่ 2 · ดูของจริงเคลื่อนไหว</p>
+      <h2 class="big-step"><span class="bs-num">▶</span> แอนิเมชัน: ตามรอย packet ทีละก้าว</h2>
+
+      <div class="callout tip">
+        <span class="co-icon">🕹️</span>
+        <div class="co-body">
+          <span class="co-title">สถานการณ์</span>
+          <strong>PC-A</strong> (HR, VLAN 10, <code>192.168.10.10</code>) สั่ง <code>ping 192.168.20.20</code> ไปหา
+          <strong>PC-B</strong> (IT, VLAN 20) โดยมี <strong>SW1</strong> เชื่อมทั้งคู่ และ <strong>R1</strong> ทำ
+          Inter-VLAN routing แบบ Router-on-a-Stick ผ่าน trunk — กด <b>ถัดไป</b> แล้วจับตา Frame Inspector ทางขวา
+        </div>
+      </div>
+
+      <section class="journey" id="journey" tabindex="0" aria-label="แอนิเมชันการเดินทางของ packet ใช้ปุ่มถัดไป/ก่อนหน้า">
+        <div class="journey-head">
+          <h3>🗺️ เวทีจำลองเครือข่าย</h3>
+          <span class="phase-pill">Interactive</span>
+        </div>
+
+        <div class="stage-wrap">
+          <!-- SVG STAGE -->
+          <div class="stage">
+            <svg id="stage-svg" viewBox="0 0 820 470" role="img" aria-label="แผนผังเครือข่าย PC-A, PC-B, Switch SW1 และ Router R1">
+              <!-- edges -->
+              <path id="e-a" class="edge" d="M 190 88 L 320 214"></path>
+              <path id="e-b" class="edge" d="M 190 390 L 320 256"></path>
+              <path id="e-t" class="edge trunk" d="M 470 235 L 630 235"></path>
+
+              <!-- edge labels -->
+              <text class="edge-label" x="196" y="150">access · VLAN 10</text>
+              <text class="edge-label" x="196" y="330">access · VLAN 20</text>
+              <text class="edge-label" x="497" y="200" text-anchor="middle">TRUNK · 802.1Q</text>
+
+              <!-- node: PC-A -->
+              <g id="n-pcA" class="node v10">
+                <rect x="40" y="48" width="150" height="80" rx="12"></rect>
+                <text class="n-emoji" x="62" y="86" text-anchor="middle">💻</text>
+                <text class="n-title" x="86" y="80">PC-A · HR</text>
+                <text class="n-ip" x="86" y="98">192.168.10.10</text>
+                <text class="n-vlan" x="86" y="114">VLAN 10</text>
+              </g>
+
+              <!-- node: PC-B -->
+              <g id="n-pcB" class="node v20">
+                <rect x="40" y="350" width="150" height="80" rx="12"></rect>
+                <text class="n-emoji" x="62" y="388" text-anchor="middle">💻</text>
+                <text class="n-title" x="86" y="382">PC-B · IT</text>
+                <text class="n-ip" x="86" y="400">192.168.20.20</text>
+                <text class="n-vlan" x="86" y="416">VLAN 20</text>
+              </g>
+
+              <!-- node: SW1 -->
+              <g id="n-sw1" class="node">
+                <rect x="320" y="192" width="150" height="86" rx="12"></rect>
+                <text class="n-emoji" x="345" y="232" text-anchor="middle">🔀</text>
+                <text class="n-title" x="372" y="226">SW1</text>
+                <text class="n-ip" x="372" y="244">Layer 2 Switch</text>
+                <text class="n-ip" x="372" y="260">MAC Table</text>
+              </g>
+
+              <!-- node: R1 -->
+              <g id="n-r1" class="node">
+                <rect x="630" y="192" width="150" height="86" rx="12"></rect>
+                <text class="n-emoji" x="655" y="232" text-anchor="middle">🧭</text>
+                <text class="n-title" x="682" y="222">R1</text>
+                <text class="n-ip" x="682" y="240">G0/0.10 = .10.1</text>
+                <text class="n-ip" x="682" y="256">G0/0.20 = .20.1</text>
+              </g>
+
+              <!-- packet token (drawn last = on top) -->
+              <g id="pkt" class="pkt l3" transform="translate(115,84)">
+                <circle class="pkt-body" cx="0" cy="0" r="16"></circle>
+                <text class="pkt-emoji" x="0" y="5" text-anchor="middle">✉️</text>
+                <g id="pkt-tag" style="display:none">
+                  <rect class="pkt-tag-bg" x="-28" y="18" width="56" height="16"></rect>
+                  <text id="pkt-tag-text" class="pkt-tag" x="0" y="30" text-anchor="middle">VLAN 10</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <!-- NARRATION + INSPECTOR -->
+          <div class="stage-side">
+            <div class="narration">
+              <div class="nr-step" id="nr-step">ขั้นที่ 0</div>
+              <div class="nr-title" id="nr-title">—</div>
+              <div class="nr-body" id="nr-body"></div>
+              <div class="nr-why" id="nr-why"></div>
+            </div>
+
+            <div class="inspector">
+              <div class="ins-title">
+                <span>🔎 Frame Inspector</span>
+                <span class="ins-msg" id="ins-msg">—</span>
+              </div>
+              <div class="frame-rows" id="frame-rows"></div>
+              <div class="frame-legend">
+                <span><i class="k-l2"></i> Layer 2 (เปลี่ยนได้ทุก hop)</span>
+                <span><i class="k-l3"></i> Layer 3 (คงเดิม)</span>
+              </div>
+            </div>
+
+            <div class="table-focus">
+              <span class="tf" id="tf-arp">ARP Table</span>
+              <span class="tf" id="tf-mac">MAC Table</span>
+              <span class="tf" id="tf-route">Routing Table</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="journey-controls">
+          <button class="ctrl-btn" id="btn-restart" type="button">⟲ เริ่มใหม่</button>
+          <button class="ctrl-btn" id="btn-prev" type="button">◀ ก่อนหน้า</button>
+          <button class="ctrl-btn primary" id="btn-next" type="button">ถัดไป ▶</button>
+          <button class="ctrl-btn" id="btn-play" type="button">▶ เล่นอัตโนมัติ</button>
+          <span class="spacer"></span>
+          <span class="step-count" id="step-count">0 / 9</span>
+        </div>
+        <div class="step-dots" id="step-dots" aria-label="ไปยังขั้นที่ต้องการ"></div>
+      </section>
+
+      <div class="callout warn">
+        <span class="co-icon">⚠️</span>
+        <div class="co-body">
+          <span class="co-title">จุดที่คนมักเข้าใจผิด</span>
+          หลายคนคิดว่า “frame ของ PC-A ใส่ MAC ของ PC-B” — <strong>ผิด!</strong> ตอนออกจาก PC-A นั้น MAC ปลายทางคือ
+          <strong>MAC ของ Gateway</strong> ต่างหาก ส่วน IP ปลายทางถึงจะเป็น PC-B สังเกตให้ดีในขั้นที่ 4
+        </div>
+      </div>
+
+      <!-- ============================================================
+           STEP-BY-STEP DEEP DIVE
+           ============================================================ -->
+      <p class="lesson-part">ส่วนที่ 3 · เจาะลึกทีละขั้น</p>
+
+      <!-- STEP 1 -->
+      <h2 class="big-step"><span class="bs-num">1</span> ปลายทาง “ในวง” หรือ “ข้ามวง”?</h2>
+      <section class="section-card">
+        <p>
+          ก่อนส่งอะไรออกไป PC ต้องตอบคำถามแรกให้ได้ก่อน: <strong>ปลายทางอยู่วงเดียวกับฉันไหม?</strong>
+          วิธีตอบคือเอา IP ตัวเองกับปลายทางมา AND กับ subnet mask แล้วเทียบว่าได้ network เดียวกันหรือเปล่า
+        </p>
+
+        <div class="decision-tree" aria-hidden="false">
+          <div class="dt-node q">ปลายทางอยู่ network เดียวกับฉันไหม?<br><span style="font-weight:500;font-size:.85rem">(IP &amp; mask แล้วเทียบกัน)</span></div>
+          <div class="dt-connector"></div>
+          <div class="dt-branches">
+            <div class="dt-branch yes">
+              <span class="dt-label">ใช่ · ในวง</span>
+              <div class="dt-connector"></div>
+              <div class="dt-node outcome local">
+                <span class="dt-em">📨</span>
+                ARP หา <b>MAC ของปลายทางเอง</b> แล้วส่ง frame ตรงถึงเครื่องนั้นผ่าน Switch
+              </div>
+            </div>
+            <div class="dt-branch no">
+              <span class="dt-label">ไม่ใช่ · ข้ามวง</span>
+              <div class="dt-connector"></div>
+              <div class="dt-node outcome remote">
+                <span class="dt-em">🧭</span>
+                ARP หา <b>MAC ของ Default Gateway</b> แล้วส่งให้ Router จัดการต่อ
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>ลองเล่น: เครื่องคิดเลข “ในวง/ข้ามวง”</h3>
+        <p>กดเลือกสถานการณ์ แล้วดูว่า PC ตัดสินใจอย่างไร (และทำไม mask ผิดถึงพัง)</p>
+        <div class="subnet-calc" id="subnet-calc">
+          <div class="sc-presets">
+            <button type="button" data-a="192.168.10.10" data-mask="24" data-b="192.168.20.20"
+                    data-note="ตรงกับสถานการณ์ในบทเรียน: PC-A ต้องส่งให้ Gateway 192.168.10.1 ก่อน">
+              ข้ามวง (สถานการณ์ในบทเรียน)
+            </button>
+            <button type="button" data-a="192.168.10.10" data-mask="24" data-b="192.168.10.20"
+                    data-note="ปลายทางอยู่ VLAN 10 เดียวกัน ส่งตรงได้ ไม่ต้องพึ่ง Router">
+              ปลายทางอยู่วงเดียวกัน
+            </button>
+            <button type="button" data-a="192.168.10.10" data-mask="16" data-b="192.168.20.20"
+                    data-note="⚠️ mask ผิด! PC จะ 'เข้าใจผิด' ว่าปลายทาง local → ARP หา 192.168.20.20 ตรง ๆ → ไม่มีใครตอบ → ping ล้มเหลว">
+              mask ผิดเป็น /16 (กับดัก!)
+            </button>
+          </div>
+          <div class="sc-rows" id="sn-out"></div>
+          <div class="sc-verdict" id="sn-verdict"></div>
+        </div>
+
+        <div class="callout warn">
+          <span class="co-icon">⚠️</span>
+          <div class="co-body">
+            <span class="co-title">ข้อควรระวัง</span>
+            <strong>Subnet mask ผิดแม้นิดเดียว</strong> ทำให้ PC ตัดสินใจ “ในวง/ข้ามวง” ผิดทันที บางเคส ping ในวงได้แต่ข้ามวงไม่ได้
+            หรือกลับกัน — เป็นกับดักยอดฮิตในข้อสอบและงานจริง
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="co-icon">🌍</span>
+          <div class="co-body">
+            <span class="co-title">กรณีใช้งานจริง</span>
+            ผู้ใช้แจ้งว่า “เข้าอินเทอร์เน็ตได้ แต่เข้าเซิร์ฟเวอร์ในบริษัทไม่ได้” หลายครั้งต้นเหตุคือ mask ที่เครื่องตั้งผิด
+            ทำให้เครื่องคิดว่าเซิร์ฟเวอร์อยู่คนละวงแล้วยิงไป Gateway ที่ไม่มี route ไปหาเซิร์ฟเวอร์นั้น
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <h2 class="big-step"><span class="bs-num">2</span> ARP: แปลง IP ให้เป็น MAC</h2>
+      <section class="section-card">
+        <p>
+          Ethernet ส่งข้อมูลด้วย <strong>MAC เท่านั้น</strong> เมื่อ PC-A รู้แค่ IP ของ Gateway แต่ไม่รู้ MAC
+          มันจะ <strong>broadcast</strong> ถามทั้งวงว่า “ใครคือ 192.168.10.1?” นี่คือ <strong>ARP (Address Resolution Protocol)</strong>
+        </p>
+
+        <div class="seq" aria-label="ลำดับการทำงานของ ARP">
+          <div class="seq-row">
+            <div class="seq-actor" style="color:var(--l3)">PC-A</div>
+            <div class="seq-arrow broadcast to-right">
+              ARP Request (ส่งทั้งวง)
+              <span class="seq-line"></span>
+              <span class="seq-msg">“ใครคือ 192.168.10.1?”</span>
+            </div>
+            <div class="seq-actor" style="color:var(--l2)">ทุกเครื่องใน VLAN 10</div>
+          </div>
+          <div class="seq-row">
+            <div class="seq-actor" style="color:var(--l2)">R1 (Gateway)</div>
+            <div class="seq-arrow to-left">
+              ARP Reply (ตอบตัวต่อตัว)
+              <span class="seq-line"></span>
+              <span class="seq-msg">“192.168.10.1 = c1:c1:01”</span>
+            </div>
+            <div class="seq-actor" style="color:var(--l3)">PC-A</div>
+          </div>
+          <div class="seq-row">
+            <div class="seq-actor" style="color:var(--l3)">PC-A</div>
+            <div class="seq-arrow to-right">
+              เก็บลง ARP cache
+              <span class="seq-line"></span>
+              <span class="seq-msg">192.168.10.1 → c1:c1:01</span>
+            </div>
+            <div class="seq-actor">ARP Table</div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="co-icon">💡</span>
+          <div class="co-body">
+            <span class="co-title">ตัวอย่าง</span>
+            บนเครื่องจริงลองพิมพ์ <code>arp -a</code> (Windows) หรือ <code>ip neigh</code> (Linux) จะเห็นตาราง IP→MAC
+            ที่เครื่องจำไว้ ถ้า entry ของ Gateway หายหรือขึ้นเป็น <code>incomplete</code> มักแปลว่า ARP ไม่สำเร็จ
+          </div>
+        </div>
+        <div class="callout danger">
+          <span class="co-icon">🛑</span>
+          <div class="co-body">
+            <span class="co-title">ข้อควรระวัง</span>
+            ARP ไม่มีการยืนยันตัวตน จึงถูกปลอมได้ (<strong>ARP spoofing</strong>) ในงาน Security นี่คือช่องโหว่คลาสสิก
+            ที่ทำ Man-in-the-Middle — ของจริงจึงใช้ DAI (Dynamic ARP Inspection) และ DHCP Snooping ป้องกัน
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="co-icon">🌍</span>
+          <div class="co-body">
+            <span class="co-title">กรณีใช้งานจริง</span>
+            IP ชนกัน (<strong>duplicate IP</strong>) จะเห็นอาการ ping ติด ๆ ดับ ๆ เพราะ ARP reply มาจากสองเครื่องสลับกัน —
+            ไล่จับได้จากการดู MAC ใน ARP table ที่เปลี่ยนไปมา
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <h2 class="big-step"><span class="bs-num">3</span> ประกอบ Frame แล้วเข้าใจ “อะไรเปลี่ยน/อะไรอยู่”</h2>
+      <section class="section-card">
+        <p>
+          เมื่อได้ MAC ของ hop ถัดไปแล้ว PC-A ห่อข้อมูลเป็น frame โครงสร้างคร่าว ๆ คือ Ethernet ห่อ IP ห่อ ICMP อีกที
+        </p>
+
+        <div class="cli">
+          <div class="cli-title">โครงของ frame ที่ออกจาก PC-A</div>
+          <pre>┌─────────────── Ethernet (Layer 2) ───────────────┐
+│ dst MAC = <span class="hl">c1:c1:01 (Gateway R1)</span>   src MAC = aa:aa:0a │
+│   ┌───────────── IP (Layer 3) ─────────────┐        │
+│   │ dst IP = <span class="hl">192.168.20.20 (PC-B)</span>  src IP = .10.10 │
+│   │   ┌──── ICMP ────┐                      │        │
+│   │   │ Echo Request │  TTL = 128           │        │
+│   │   └──────────────┘                      │        │
+│   └─────────────────────────────────────────┘        │
+└───────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <p>
+          จุดที่ต้องเก็บให้ขึ้นใจ: ในขณะเดียวกัน <strong>MAC ปลายทางชี้ที่ Gateway</strong> แต่ <strong>IP ปลายทางชี้ที่ PC-B</strong>
+          นี่คือเหตุผลที่ networking ต้องมีสองที่อยู่ ไม่ใช่อย่างใดอย่างหนึ่ง
+        </p>
+
+        <h3>frame เดิม เดินทาง 3 ช่วง — ดูว่าหัวเปลี่ยนตรงไหน</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>ช่วงเส้นทาง</th><th>src MAC</th><th>dst MAC</th><th>src IP</th><th>dst IP</th><th>TTL</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PC-A → R1</td>
+                <td class="mono" style="color:var(--l2)">aa:aa:0a</td>
+                <td class="mono" style="color:var(--l2)">c1:c1:01</td>
+                <td class="mono" style="color:var(--l3)">.10.10</td>
+                <td class="mono" style="color:var(--l3)">.20.20</td>
+                <td>128</td>
+              </tr>
+              <tr>
+                <td>R1 → PC-B</td>
+                <td class="mono" style="color:var(--l2)"><strong>c1:c1:01</strong></td>
+                <td class="mono" style="color:var(--l2)"><strong>bb:bb:14</strong></td>
+                <td class="mono" style="color:var(--l3)">.10.10</td>
+                <td class="mono" style="color:var(--l3)">.20.20</td>
+                <td><strong>127</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout think">
+          <span class="co-icon">🧠</span>
+          <div class="co-body">
+            <span class="co-title">ทำไมถึงเป็นแบบนั้น</span>
+            คอลัมน์ <strong style="color:var(--l2)">MAC เปลี่ยนทั้งคู่</strong> เมื่อผ่าน R1 เพราะเข้าสู่วงใหม่ (VLAN 20) ต้องใช้ MAC ของวงนั้น
+            ส่วน <strong style="color:var(--l3)">IP ไม่ขยับ</strong> เพราะมันคือปลายทางจริง และ <strong>TTL ลด 1</strong> ทุกครั้งที่ Router forward เพื่อกัน loop
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="co-icon">🌍</span>
+          <div class="co-body">
+            <span class="co-title">กรณีใช้งานจริง</span>
+            คำสั่ง <code>traceroute</code> อาศัยหลัก TTL นี้ตรง ๆ — มันส่ง packet ที่ TTL น้อย ๆ เพื่อให้ router แต่ละ hop
+            ตอบกลับมา ทำให้เราเห็นเส้นทางทีละ hop ว่า packet ไปตายที่ไหน
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <h2 class="big-step"><span class="bs-num">4</span> Switch + VLAN + Trunk (802.1Q)</h2>
+      <section class="section-card">
+        <p>
+          Switch ไม่สนใจ IP เลย มันดูแค่ <strong>MAC ปลายทาง</strong> แล้วเปิด <strong>MAC Address Table</strong> เพื่อเลือกพอร์ตส่งออก
+        </p>
+
+        <div class="cli">
+          <div class="cli-title">SW1# show mac address-table (ตัวอย่าง)</div>
+          <pre><span class="c">VLAN    MAC Address       Type      Ports</span>
+10      aa:aa:0a          DYNAMIC   Fa0/1     <span class="c">← PC-A</span>
+20      bb:bb:14          DYNAMIC   Fa0/2     <span class="c">← PC-B</span>
+10      c1:c1:01          DYNAMIC   <span class="hl">Gi0/1</span>     <span class="c">← R1 ผ่าน trunk</span>
+20      c1:c1:01          DYNAMIC   <span class="hl">Gi0/1</span>     <span class="c">← R1 ผ่าน trunk</span></pre>
+        </div>
+
+        <p>
+          พอปลายทางเป็น R1 ซึ่งอยู่หลัง <strong>trunk</strong> (สายเส้นเดียวที่แบกหลาย VLAN) SW1 จะ
+          <strong>ติดแท็ก 802.1Q</strong> ระบุหมายเลข VLAN ลงไปในหัว frame ก่อนส่งออก เพื่อให้ปลายทางแยกออกว่า frame นี้เป็นของ VLAN ไหน
+        </p>
+
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>ชนิดพอร์ต</th><th>ทำอะไรกับ VLAN tag</th><th>ต่อกับ</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Access</strong></td><td>ไม่มี tag (frame ล้วน) เป็นสมาชิก VLAN เดียว</td><td>เครื่องผู้ใช้ / PC</td></tr>
+              <tr><td><strong>Trunk</strong></td><td>ใส่/อ่าน tag 802.1Q แบกได้หลาย VLAN</td><td>Switch↔Switch หรือ Switch↔Router</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <span class="co-icon">⚠️</span>
+          <div class="co-body">
+            <span class="co-title">ข้อควรระวัง: Native VLAN mismatch</span>
+            สองฝั่งของ trunk ต้องตั้ง <strong>native VLAN ตรงกัน</strong> ถ้าไม่ตรง VLAN ที่วิ่งแบบ untagged จะรั่วข้ามกัน
+            (VLAN hopping) เป็นทั้งบั๊กและช่องโหว่ความปลอดภัย
+          </div>
+        </div>
+        <div class="callout tip">
+          <span class="co-icon">✅</span>
+          <div class="co-body">
+            <span class="co-title">Best Practice</span>
+            ตั้ง trunk แบบระบุ VLAN ที่อนุญาตด้วย <code>switchport trunk allowed vlan</code> และเปลี่ยน native VLAN ให้เป็น VLAN ที่ไม่ได้ใช้งานจริง
+            อย่าปล่อยเป็น VLAN 1 ตามค่าเริ่มต้น
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 5 -->
+      <h2 class="big-step"><span class="bs-num">5</span> Routing + Longest Prefix Match</h2>
+      <section class="section-card">
+        <p>
+          R1 แกะ tag ออก อ่าน <strong>IP ปลายทาง</strong> แล้วเปิด <strong>Routing Table</strong> ปัญหาคือบ่อยครั้ง
+          มีหลาย route ที่ “ครอบคลุม” ปลายทางเดียวกัน Router จึงใช้กฎ <strong>Longest Prefix Match</strong>:
+          เลือกเส้นที่ prefix ยาวที่สุด (เจาะจงที่สุด) เสมอ
+        </p>
+
+        <h3>ลองเล่น: เลือกปลายทาง แล้วดูว่า R1 เลือก route ไหน</h3>
+        <div class="lpm" id="lpm">
+          <div class="lpm-dests">
+            <span class="lpm-lbl">ปลายทาง:</span>
+            <button type="button" data-ip="192.168.20.20">192.168.20.20</button>
+            <button type="button" data-ip="192.168.20.40">192.168.20.40</button>
+            <button type="button" data-ip="192.168.99.7">192.168.99.7</button>
+            <button type="button" data-ip="8.8.8.8">8.8.8.8</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data lpm-table">
+              <thead>
+                <tr><th>Route (network/prefix)</th><th>Prefix</th><th>ออกทาง</th><th>เทียบกับปลายทาง</th></tr>
+              </thead>
+              <tbody>
+                <tr data-cidr="192.168.20.32/28" data-via="ผ่าน next-hop 10.0.0.9">
+                  <td class="mono">192.168.20.32/28</td><td>/28</td><td>via 10.0.0.9</td><td class="match"></td>
+                </tr>
+                <tr data-cidr="192.168.20.0/24" data-via="ที่ต่อตรง (connected) G0/0.20">
+                  <td class="mono">192.168.20.0/24</td><td>/24</td><td>connected G0/0.20</td><td class="match"></td>
+                </tr>
+                <tr data-cidr="192.168.0.0/16" data-via="ผ่าน summary route 10.0.0.2">
+                  <td class="mono">192.168.0.0/16</td><td>/16</td><td>via 10.0.0.2</td><td class="match"></td>
+                </tr>
+                <tr data-cidr="0.0.0.0/0" data-via="ผ่าน default route ไป ISP">
+                  <td class="mono">0.0.0.0/0</td><td>/0</td><td>via 203.0.113.1</td><td class="match"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="lpm-explain" id="lpm-explain"></div>
+        </div>
+
+        <div class="callout think">
+          <span class="co-icon">🧠</span>
+          <div class="co-body">
+            <span class="co-title">ทำไมต้อง “ยาวสุด”</span>
+            prefix ยิ่งยาว = ยิ่งเจาะจงกลุ่ม IP เล็กลง Router เลือกอันเจาะจงสุดเพื่อให้ผลลัพธ์ <strong>เดียว ไม่กำกวม</strong>
+            เหมือนที่อยู่ “บ้านเลขที่ 20 ซอย 3” ย่อมเจาะจงกว่า “แขวงนี้ทั้งแขวง”
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="co-icon">🌍</span>
+          <div class="co-body">
+            <span class="co-title">กรณีใช้งานจริง</span>
+            <strong>Default route</strong> <code>0.0.0.0/0</code> คือ “ถ้าไม่ตรงอะไรเลย ให้ส่งออกทางนี้” — เป็นเส้นที่สั้นที่สุด
+            จึงถูกใช้เป็นทางเลือกสุดท้ายเสมอ นี่คือหลักการเดียวกับที่ router บ้านคุณส่งทุกอย่างที่ไม่ใช่วงในออกไปหา ISP
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 6 -->
+      <h2 class="big-step"><span class="bs-num">6</span> ขากลับ — และทำไม “ping ไม่กลับ” ถึงเจอบ่อย</h2>
+      <section class="section-card">
+        <p>
+          ถึงมือ PC-B แล้วยังไม่จบ — PC-B ต้องส่ง <strong>Echo Reply</strong> กลับ โดยสลับ src/dst IP แล้ววิ่งย้อนกระบวนการเดิมทั้งหมด
+          (ตัดสินใจในวง/ข้ามวง → ARP → frame → switch → routing) กว่า ping จะขึ้นว่า “สำเร็จ” ต้องครบ <strong>ทั้งไปและกลับ</strong>
+        </p>
+
+        <div class="callout danger">
+          <span class="co-icon">🛑</span>
+          <div class="co-body">
+            <span class="co-title">กับดักที่พบบ่อยที่สุด</span>
+            เวลาเจอ “ping ไม่ได้” มือใหม่มักไล่แต่ขาไป แต่จริง ๆ ปัญหาส่วนใหญ่คือ <strong>ขากลับไม่มี route</strong> —
+            ขาไปถึงปลายทางเรียบร้อย แต่ปลายทางไม่รู้ทางกลับมาหาเรา ต้องมี route ครบ <strong>ทั้งสองทิศ</strong>เสมอ
+          </div>
+        </div>
+
+        <h3>ลำดับการไล่ปัญหาแบบ Engineer (follow-the-path)</h3>
+        <ol class="howto-steps" style="grid-template-columns:1fr">
+          <li><span class="hs-num">L1</span><div><strong>ชั้นกายภาพ/ลิงก์</strong> — สายต่อไหม พอร์ต up ไหม (<code>show ip interface brief</code>) VLAN ถูกไหม</div></li>
+          <li><span class="hs-num">L2</span><div><strong>ในวงเดียวกัน</strong> — ARP ขึ้นไหม MAC เข้า table ไหม trunk/native VLAN ตรงไหม</div></li>
+          <li><span class="hs-num">L3</span><div><strong>ข้ามวง</strong> — routing table มีเส้นทางไป <em>และ</em> กลับไหม gateway/next-hop ถูกไหม mask ถูกไหม</div></li>
+          <li><span class="hs-num">↔</span><div><strong>ยืนยันสองทิศ</strong> — <code>ping</code> จากทั้งสองฝั่ง และ <code>traceroute</code> ดูว่าตายที่ hop ไหน</div></li>
+        </ol>
+
+        <div class="callout tip">
+          <span class="co-icon">✅</span>
+          <div class="co-body">
+            <span class="co-title">Best Practice</span>
+            ไล่จากล่างขึ้นบน (L1 → L2 → L3) และ <strong>แบ่งครึ่งเส้นทาง</strong> (divide &amp; conquer) — ping จากจุดกึ่งกลางก่อน
+            เพื่อฟันธงว่าปัญหาอยู่ครึ่งไหน จะเร็วกว่าเดาสุ่มมาก
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           SUMMARY
+           ============================================================ -->
+      <p class="lesson-part">ส่วนที่ 4 · สรุปภาพรวม</p>
+      <h2 class="big-step"><span class="bs-num">Σ</span> สรุปการเดินทางในหนึ่งภาพ</h2>
+      <section class="section-card">
+        <p>ทั้งหมดที่ผ่านมา ย่อเหลือ 6 ก้าวที่ packet ต้องผ่านทุกครั้งที่ข้ามวง:</p>
+        <div class="summary-flow">
+          <div class="sf-step"><div class="sf-n">STEP 1</div><div class="sf-t">ในวง/ข้ามวง?</div><div class="sf-d">IP &amp; mask เทียบ network</div></div>
+          <div class="sf-arrow">→</div>
+          <div class="sf-step"><div class="sf-n">STEP 2</div><div class="sf-t">ARP</div><div class="sf-d">หา MAC ของ hop ถัดไป</div></div>
+          <div class="sf-arrow">→</div>
+          <div class="sf-step"><div class="sf-n">STEP 3</div><div class="sf-t">ประกอบ Frame</div><div class="sf-d">MAC=gateway, IP=ปลายทาง</div></div>
+          <div class="sf-arrow">→</div>
+          <div class="sf-step"><div class="sf-n">STEP 4</div><div class="sf-t">Switch + Trunk</div><div class="sf-d">MAC table + 802.1Q tag</div></div>
+          <div class="sf-arrow">→</div>
+          <div class="sf-step"><div class="sf-n">STEP 5</div><div class="sf-t">Routing</div><div class="sf-d">LPM เลือกเส้นเจาะจงสุด</div></div>
+          <div class="sf-arrow">→</div>
+          <div class="sf-step"><div class="sf-n">STEP 6</div><div class="sf-t">Rewrite + ส่งต่อ</div><div class="sf-d">MAC ใหม่, IP เดิม, TTL−1</div></div>
+        </div>
+        <div class="callout info">
+          <span class="co-icon">📌</span>
+          <div class="co-body">
+            <span class="co-title">ประโยคเดียวที่สรุปทั้งบท</span>
+            <strong>“IP บอกว่าจะไปไหน, MAC บอกว่าก้าวถัดไปส่งให้ใคร”</strong> — Switch ตัดสินด้วย MAC ในวงเดียว,
+            Router ตัดสินด้วย IP ข้ามวงและเขียนหัว L2 ใหม่ทุก hop
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           KEY TAKEAWAYS
+           ============================================================ -->
+      <h2 class="big-step"><span class="bs-num">★</span> Key Takeaways</h2>
+      <div class="takeaways">
+        <div class="takeaway">
+          <div class="tk-em">📮</div>
+          <div class="tk-t">MAC = ก้าวถัดไป, IP = ปลายทาง</div>
+          <div class="tk-d">MAC ปลายทางของ frame ที่ออกจาก PC คือ Gateway ไม่ใช่เครื่องปลายทางจริง</div>
+        </div>
+        <div class="takeaway">
+          <div class="tk-em">🔁</div>
+          <div class="tk-t">L2 เปลี่ยนทุก hop, L3 คงเดิม</div>
+          <div class="tk-d">ทุกครั้งที่ผ่าน Router หัว Ethernet ถูกเขียนใหม่ แต่ IP ต้นทาง/ปลายทางไม่ขยับ</div>
+        </div>
+        <div class="takeaway">
+          <div class="tk-em">📖</div>
+          <div class="tk-t">จำ “สมุด 3 เล่ม”</div>
+          <div class="tk-d">ARP (IP→MAC), MAC table (MAC→Port), Routing table (Network→Next-hop)</div>
+        </div>
+        <div class="takeaway">
+          <div class="tk-em">🎯</div>
+          <div class="tk-t">Longest Prefix Match</div>
+          <div class="tk-d">route ที่เจาะจงที่สุด (prefix ยาวสุด) ชนะเสมอ, default route คือทางเลือกสุดท้าย</div>
+        </div>
+        <div class="takeaway">
+          <div class="tk-em">↔️</div>
+          <div class="tk-t">ต้องครบสองทิศ</div>
+          <div class="tk-d">ping สำเร็จเมื่อมี route/ARP ครบทั้งขาไปและขากลับ — “ไม่กลับ” มักคือขากลับหาย</div>
+        </div>
+        <div class="takeaway">
+          <div class="tk-em">🧮</div>
+          <div class="tk-t">mask คือตัวตัดสิน</div>
+          <div class="tk-d">subnet mask ผิด ทำให้เครื่องเข้าใจ “ในวง/ข้ามวง” ผิด — ต้นเหตุบั๊กเงียบ ๆ ที่เจอบ่อย</div>
+        </div>
+      </div>
+
+      <!-- ============================================================
+           FAQ
+           ============================================================ -->
+      <h2 class="big-step"><span class="bs-num">?</span> คำถามที่พบบ่อย (FAQ)</h2>
+      <div class="faq">
+        <details>
+          <summary>ทำไมต้องมีทั้ง MAC และ IP ใช้อย่างเดียวไม่ได้เหรอ?</summary>
+          <div class="faq-body">
+            <p>IP ออกแบบให้ “มีลำดับชั้น” (network + host) จึงสรุปเส้นทางและ route ข้ามโลกได้ ส่วน MAC เป็นเลขประจำการ์ดที่แบนราบ
+            ไม่มีโครงสร้างเชิงภูมิศาสตร์ เหมาะกับการส่งภายในวงเดียวเท่านั้น สองอย่างทำคนละหน้าที่จึงต้องมีคู่กัน</p>
+          </div>
+        </details>
+        <details>
+          <summary>Router-on-a-Stick กับ Layer 3 Switch (SVI) ต่างกันยังไง?</summary>
+          <div class="faq-body">
+            <p>ROAS ใช้ Router พอร์ตเดียวแบ่งเป็น subinterface ต่อ VLAN ผ่าน trunk — ประหยัดพอร์ตแต่ traffic ข้าม VLAN ทั้งหมดวิ่งผ่านสายเส้นเดียว (คอขวด)
+            ส่วน L3 Switch ทำ routing ในตัวด้วย SVI ความเร็วระดับฮาร์ดแวร์ เหมาะกับเครือข่ายที่โตขึ้น ดูรายละเอียดใน
+            <a href="labs/lab04.html">Lab 4</a> และ <a href="labs/lab05.html">Lab 5</a></p>
+          </div>
+        </details>
+        <details>
+          <summary>ARP cache หมดอายุแล้วเกิดอะไรขึ้น?</summary>
+          <div class="faq-body">
+            <p>เมื่อ entry หมดอายุ (ปกติไม่กี่นาที) การส่งครั้งถัดไปจะทริกเกอร์ ARP รอบใหม่ก่อน 1 ครั้ง ทำให้ packet แรกดีเลย์นิดหน่อยหรือหลุดไป 1 ตัว
+            แล้วจึงกลับมาปกติ — ไม่ใช่ปัญหา แต่ช่วยอธิบายว่าทำไม ping ตัวแรกบางทีช้ากว่าตัวถัด ๆ ไป</p>
+          </div>
+        </details>
+        <details>
+          <summary>TTL คืออะไร ทำไมต้องลดลงทุก hop?</summary>
+          <div class="faq-body">
+            <p>TTL (Time To Live) คือตัวนับกัน packet วนไม่รู้จบเวลามี routing loop ทุกครั้งที่ Router forward จะลด TTL ลง 1
+            ถ้าถึง 0 จะถูกทิ้งแล้วส่ง ICMP Time Exceeded กลับ — <code>traceroute</code> ใช้กลไกนี้แหละในการวาดเส้นทาง</p>
+          </div>
+        </details>
+        <details>
+          <summary>ทำไมเลขปลายทางเดียวกันถึง match ได้หลาย route?</summary>
+          <div class="faq-body">
+            <p>เพราะ route เขียนเป็นช่วง (network/prefix) ที่ซ้อนกันได้ เช่น <code>192.168.20.20</code> อยู่ทั้งใน <code>/24</code>, <code>/16</code> และ <code>/0</code>
+            กฎ Longest Prefix Match จึงมีไว้ตัดสินให้เหลือคำตอบเดียว ลองกดเล่นใน widget ของ Step 5 ได้</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- ============================================================
+           NEXT STEPS
+           ============================================================ -->
+      <h2 class="big-step"><span class="bs-num">→</span> ฝึกต่อให้เข้ามือ</h2>
+      <div class="callout tip">
+        <span class="co-icon">💡</span>
+        <div class="co-body">
+          <span class="co-title">เคล็ดลับจากพี่ Reviewer</span>
+          เข้าใจทฤษฎีแล้วต้อง <strong>ลงมือทำ</strong> ถึงจะติดตัว ลองทำ Lab แล้วเล่า packet flow นี้ให้ตัวเองฟังหนึ่งรอบทุกครั้งที่ทำเสร็จ
+        </div>
+      </div>
+      <div class="next-grid">
+        <a class="next-card" href="workbook.html">
+          <span class="nx-em">🧪</span>
+          <span>
+            <span class="nx-t">ลงมือทำ Labs ทั้ง 10</span>
+            <span class="nx-d">ฝึกจริงตั้งแต่ Static Routing, VLAN, ROAS, Inter-VLAN ไปจนถึง Troubleshooting และข้อสอบรวบยอด</span>
+          </span>
+        </a>
+        <a class="next-card" href="fundamentals.html">
+          <span class="nx-em">🧠</span>
+          <span>
+            <span class="nx-t">อ่านทฤษฎีพื้นฐานฉบับเต็ม</span>
+            <span class="nx-d">OSI, L2 switching, ARP, routing table, Longest Prefix Match และวิธีคิด troubleshooting</span>
+          </span>
+        </a>
+        <a class="next-card" href="commands.html">
+          <span class="nx-em">⌨️</span>
+          <span>
+            <span class="nx-t">Command Reference</span>
+            <span class="nx-d">คำสั่ง Cisco IOS ที่ใช้ตรวจทุกอย่างในบทเรียนนี้ พร้อมตัวอย่าง output และวิธีอ่าน</span>
+          </span>
+        </a>
+      </div>
 
     </main>
   </div>
@@ -236,9 +790,10 @@
   <button class="back-top" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
 
   <footer class="site-footer">
-    Network Engineer Workbook — สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern · สร้างตามแนวทาง Cisco NetAcad / SI Internal Training
+    Network Engineer Workbook — บทเรียน Interactive “การเดินทางของ Packet” · สื่อฝึกอบรมสำหรับ Network / Security Engineer Intern
   </footer>
 
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/packet-journey.js"></script>
 </body>
 </html>
